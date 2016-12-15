@@ -17,17 +17,15 @@ import { SecurityContext } from '@angular/core/index';
 //
 // =================================================================================================
 /** Map from tagName|propertyName SecurityContext. Properties applying to all tags use '*'. */
-export var /** @type {?} */ SECURITY_SCHEMA = {};
+export const /** @type {?} */ SECURITY_SCHEMA = {};
 /**
  * @param {?} ctx
  * @param {?} specs
  * @return {?}
  */
 function registerContext(ctx, specs) {
-    for (var _i = 0, specs_1 = specs; _i < specs_1.length; _i++) {
-        var spec = specs_1[_i];
+    for (const spec of specs)
         SECURITY_SCHEMA[spec.toLowerCase()] = ctx;
-    }
 }
 // Case is insignificant below, all element and attribute names are lower-cased for lookup.
 registerContext(SecurityContext.HTML, [

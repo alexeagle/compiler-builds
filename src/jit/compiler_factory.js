@@ -29,20 +29,20 @@ import { TemplateParser } from '../template_parser/template_parser';
 import { DEFAULT_PACKAGE_URL_PROVIDER, UrlResolver } from '../url_resolver';
 import { ViewCompiler } from '../view_compiler/view_compiler';
 import { JitCompiler } from './compiler';
-var /** @type {?} */ _NO_RESOURCE_LOADER = {
+const /** @type {?} */ _NO_RESOURCE_LOADER = {
     /**
      * @param {?} url
      * @return {?}
      */
-    get: function (url) {
-        throw new Error("No ResourceLoader implementation has been provided. Can't read the url \"" + url + "\"");
+    get(url) {
+        throw new Error(`No ResourceLoader implementation has been provided. Can't read the url "${url}"`);
     }
 };
 /**
  * A set of providers that provide `JitCompiler` and its dependencies to use for
  * template compilation.
  */
-export var /** @type {?} */ COMPILER_PROVIDERS = [
+export const /** @type {?} */ COMPILER_PROVIDERS = [
     { provide: Reflector, useValue: reflector },
     { provide: ReflectorReader, useExisting: Reflector },
     { provide: ResourceLoader, useValue: _NO_RESOURCE_LOADER },
@@ -53,9 +53,7 @@ export var /** @type {?} */ COMPILER_PROVIDERS = [
     HtmlParser,
     {
         provide: i18n.I18NHtmlParser,
-        useFactory: function (parser, translations, format) {
-            return new i18n.I18NHtmlParser(parser, translations, format);
-        },
+        useFactory: (parser, translations, format) => new i18n.I18NHtmlParser(parser, translations, format),
         deps: [
             HtmlParser,
             [new Optional(), new Inject(TRANSLATIONS)],
@@ -81,11 +79,11 @@ export var /** @type {?} */ COMPILER_PROVIDERS = [
     NgModuleResolver,
     AnimationParser
 ];
-export var JitCompilerFactory = (function () {
+export class JitCompilerFactory {
     /**
      * @param {?} defaultOptions
      */
-    function JitCompilerFactory(defaultOptions) {
+    constructor(defaultOptions) {
         this._defaultOptions = [{
                 useDebug: isDevMode(),
                 useJit: true,
@@ -96,13 +94,12 @@ export var JitCompilerFactory = (function () {
      * @param {?=} options
      * @return {?}
      */
-    JitCompilerFactory.prototype.createCompiler = function (options) {
-        if (options === void 0) { options = []; }
-        var /** @type {?} */ mergedOptions = _mergeOptions(this._defaultOptions.concat(options));
-        var /** @type {?} */ injector = ReflectiveInjector.resolveAndCreate([
+    createCompiler(options = []) {
+        const /** @type {?} */ mergedOptions = _mergeOptions(this._defaultOptions.concat(options));
+        const /** @type {?} */ injector = ReflectiveInjector.resolveAndCreate([
             COMPILER_PROVIDERS, {
                 provide: CompilerConfig,
-                useFactory: function () {
+                useFactory: () => {
                     return new CompilerConfig({
                         // let explicit values from the compiler options overwrite options
                         // from the app providers. E.g. important for the testing platform.
@@ -121,16 +118,15 @@ export var JitCompilerFactory = (function () {
             mergedOptions.providers
         ]);
         return injector.get(Compiler);
-    };
-    JitCompilerFactory.decorators = [
-        { type: Injectable },
-    ];
-    /** @nocollapse */
-    JitCompilerFactory.ctorParameters = function () { return [
-        { type: Array, decorators: [{ type: Inject, args: [COMPILER_OPTIONS,] },] },
-    ]; };
-    return JitCompilerFactory;
-}());
+    }
+}
+JitCompilerFactory.decorators = [
+    { type: Injectable },
+];
+/** @nocollapse */
+JitCompilerFactory.ctorParameters = () => [
+    { type: Array, decorators: [{ type: Inject, args: [COMPILER_OPTIONS,] },] },
+];
 function JitCompilerFactory_tsickle_Closure_declarations() {
     /** @type {?} */
     JitCompilerFactory.decorators;
@@ -153,7 +149,7 @@ function _initReflector() {
  *
  * @experimental
  */
-export var /** @type {?} */ platformCoreDynamic = createPlatformFactory(platformCore, 'coreDynamic', [
+export const /** @type {?} */ platformCoreDynamic = createPlatformFactory(platformCore, 'coreDynamic', [
     { provide: COMPILER_OPTIONS, useValue: {}, multi: true },
     { provide: CompilerFactory, useClass: JitCompilerFactory },
     { provide: PLATFORM_INITIALIZER, useValue: _initReflector, multi: true },
@@ -164,10 +160,10 @@ export var /** @type {?} */ platformCoreDynamic = createPlatformFactory(platform
  */
 function _mergeOptions(optionsArr) {
     return {
-        useDebug: _lastDefined(optionsArr.map(function (options) { return options.useDebug; })),
-        useJit: _lastDefined(optionsArr.map(function (options) { return options.useJit; })),
-        defaultEncapsulation: _lastDefined(optionsArr.map(function (options) { return options.defaultEncapsulation; })),
-        providers: _mergeArrays(optionsArr.map(function (options) { return options.providers; }))
+        useDebug: _lastDefined(optionsArr.map(options => options.useDebug)),
+        useJit: _lastDefined(optionsArr.map(options => options.useJit)),
+        defaultEncapsulation: _lastDefined(optionsArr.map(options => options.defaultEncapsulation)),
+        providers: _mergeArrays(optionsArr.map(options => options.providers))
     };
 }
 /**
@@ -175,7 +171,7 @@ function _mergeOptions(optionsArr) {
  * @return {?}
  */
 function _lastDefined(args) {
-    for (var /** @type {?} */ i = args.length - 1; i >= 0; i--) {
+    for (let /** @type {?} */ i = args.length - 1; i >= 0; i--) {
         if (args[i] !== undefined) {
             return args[i];
         }
@@ -187,8 +183,8 @@ function _lastDefined(args) {
  * @return {?}
  */
 function _mergeArrays(parts) {
-    var /** @type {?} */ result = [];
-    parts.forEach(function (part) { return part && result.push.apply(result, part); });
+    const /** @type {?} */ result = [];
+    parts.forEach((part) => part && result.push(...part));
     return result;
 }
 //# sourceMappingURL=compiler_factory.js.map

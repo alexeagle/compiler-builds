@@ -1,19 +1,16 @@
 import { Injectable } from '@angular/core/index';
-export var SummaryResolver = (function () {
-    function SummaryResolver() {
-    }
+export class SummaryResolver {
     /**
      * @param {?} reference
      * @return {?}
      */
-    SummaryResolver.prototype.resolveSummary = function (reference) { return null; };
-    SummaryResolver.decorators = [
-        { type: Injectable },
-    ];
-    /** @nocollapse */
-    SummaryResolver.ctorParameters = function () { return []; };
-    return SummaryResolver;
-}());
+    resolveSummary(reference) { return null; }
+}
+SummaryResolver.decorators = [
+    { type: Injectable },
+];
+/** @nocollapse */
+SummaryResolver.ctorParameters = () => [];
 function SummaryResolver_tsickle_Closure_declarations() {
     /** @type {?} */
     SummaryResolver.decorators;

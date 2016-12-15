@@ -17,14 +17,14 @@ import { extractStyleUrls, isStyleUrlResolvable } from './style_url_resolver';
 import { PreparsedElementType, preparseElement } from './template_parser/template_preparser';
 import { UrlResolver } from './url_resolver';
 import { SyncAsyncResult } from './util';
-export var DirectiveNormalizer = (function () {
+export class DirectiveNormalizer {
     /**
      * @param {?} _resourceLoader
      * @param {?} _urlResolver
      * @param {?} _htmlParser
      * @param {?} _config
      */
-    function DirectiveNormalizer(_resourceLoader, _urlResolver, _htmlParser, _config) {
+    constructor(_resourceLoader, _urlResolver, _htmlParser, _config) {
         this._resourceLoader = _resourceLoader;
         this._urlResolver = _urlResolver;
         this._htmlParser = _htmlParser;
@@ -34,39 +34,37 @@ export var DirectiveNormalizer = (function () {
     /**
      * @return {?}
      */
-    DirectiveNormalizer.prototype.clearCache = function () { this._resourceLoaderCache.clear(); };
+    clearCache() { this._resourceLoaderCache.clear(); }
     /**
      * @param {?} normalizedDirective
      * @return {?}
      */
-    DirectiveNormalizer.prototype.clearCacheFor = function (normalizedDirective) {
-        var _this = this;
+    clearCacheFor(normalizedDirective) {
         if (!normalizedDirective.isComponent) {
             return;
         }
         this._resourceLoaderCache.delete(normalizedDirective.template.templateUrl);
-        normalizedDirective.template.externalStylesheets.forEach(function (stylesheet) { _this._resourceLoaderCache.delete(stylesheet.moduleUrl); });
-    };
+        normalizedDirective.template.externalStylesheets.forEach((stylesheet) => { this._resourceLoaderCache.delete(stylesheet.moduleUrl); });
+    }
     /**
      * @param {?} url
      * @return {?}
      */
-    DirectiveNormalizer.prototype._fetch = function (url) {
-        var /** @type {?} */ result = this._resourceLoaderCache.get(url);
+    _fetch(url) {
+        let /** @type {?} */ result = this._resourceLoaderCache.get(url);
         if (!result) {
             result = this._resourceLoader.get(url);
             this._resourceLoaderCache.set(url, result);
         }
         return result;
-    };
+    }
     /**
      * @param {?} prenormData
      * @return {?}
      */
-    DirectiveNormalizer.prototype.normalizeTemplate = function (prenormData) {
-        var _this = this;
-        var /** @type {?} */ normalizedTemplateSync = null;
-        var /** @type {?} */ normalizedTemplateAsync;
+    normalizeTemplate(prenormData) {
+        let /** @type {?} */ normalizedTemplateSync = null;
+        let /** @type {?} */ normalizedTemplateAsync;
         if (isPresent(prenormData.template)) {
             normalizedTemplateSync = this.normalizeTemplateSync(prenormData);
             normalizedTemplateAsync = Promise.resolve(normalizedTemplateSync);
@@ -75,7 +73,7 @@ export var DirectiveNormalizer = (function () {
             normalizedTemplateAsync = this.normalizeTemplateAsync(prenormData);
         }
         else {
-            throw new Error("No template specified for component " + stringify(prenormData.componentType));
+            throw new Error(`No template specified for component ${stringify(prenormData.componentType)}`);
         }
         if (normalizedTemplateSync && normalizedTemplateSync.styleUrls.length === 0) {
             // sync case
@@ -83,73 +81,72 @@ export var DirectiveNormalizer = (function () {
         }
         else {
             // async case
-            return new SyncAsyncResult(null, normalizedTemplateAsync.then(function (normalizedTemplate) { return _this.normalizeExternalStylesheets(normalizedTemplate); }));
+            return new SyncAsyncResult(null, normalizedTemplateAsync.then((normalizedTemplate) => this.normalizeExternalStylesheets(normalizedTemplate)));
         }
-    };
+    }
     /**
      * @param {?} prenomData
      * @return {?}
      */
-    DirectiveNormalizer.prototype.normalizeTemplateSync = function (prenomData) {
+    normalizeTemplateSync(prenomData) {
         return this.normalizeLoadedTemplate(prenomData, prenomData.template, prenomData.moduleUrl);
-    };
+    }
     /**
      * @param {?} prenomData
      * @return {?}
      */
-    DirectiveNormalizer.prototype.normalizeTemplateAsync = function (prenomData) {
-        var _this = this;
-        var /** @type {?} */ templateUrl = this._urlResolver.resolve(prenomData.moduleUrl, prenomData.templateUrl);
+    normalizeTemplateAsync(prenomData) {
+        const /** @type {?} */ templateUrl = this._urlResolver.resolve(prenomData.moduleUrl, prenomData.templateUrl);
         return this._fetch(templateUrl)
-            .then(function (value) { return _this.normalizeLoadedTemplate(prenomData, value, templateUrl); });
-    };
+            .then((value) => this.normalizeLoadedTemplate(prenomData, value, templateUrl));
+    }
     /**
      * @param {?} prenomData
      * @param {?} template
      * @param {?} templateAbsUrl
      * @return {?}
      */
-    DirectiveNormalizer.prototype.normalizeLoadedTemplate = function (prenomData, template, templateAbsUrl) {
-        var /** @type {?} */ interpolationConfig = InterpolationConfig.fromArray(prenomData.interpolation);
-        var /** @type {?} */ rootNodesAndErrors = this._htmlParser.parse(template, stringify(prenomData.componentType), false, interpolationConfig);
+    normalizeLoadedTemplate(prenomData, template, templateAbsUrl) {
+        const /** @type {?} */ interpolationConfig = InterpolationConfig.fromArray(prenomData.interpolation);
+        const /** @type {?} */ rootNodesAndErrors = this._htmlParser.parse(template, stringify(prenomData.componentType), false, interpolationConfig);
         if (rootNodesAndErrors.errors.length > 0) {
-            var /** @type {?} */ errorString = rootNodesAndErrors.errors.join('\n');
-            throw new Error("Template parse errors:\n" + errorString);
+            const /** @type {?} */ errorString = rootNodesAndErrors.errors.join('\n');
+            throw new Error(`Template parse errors:\n${errorString}`);
         }
-        var /** @type {?} */ templateMetadataStyles = this.normalizeStylesheet(new CompileStylesheetMetadata({
+        const /** @type {?} */ templateMetadataStyles = this.normalizeStylesheet(new CompileStylesheetMetadata({
             styles: prenomData.styles,
             styleUrls: prenomData.styleUrls,
             moduleUrl: prenomData.moduleUrl
         }));
-        var /** @type {?} */ visitor = new TemplatePreparseVisitor();
+        const /** @type {?} */ visitor = new TemplatePreparseVisitor();
         html.visitAll(visitor, rootNodesAndErrors.rootNodes);
-        var /** @type {?} */ templateStyles = this.normalizeStylesheet(new CompileStylesheetMetadata({ styles: visitor.styles, styleUrls: visitor.styleUrls, moduleUrl: templateAbsUrl }));
-        var /** @type {?} */ encapsulation = prenomData.encapsulation;
+        const /** @type {?} */ templateStyles = this.normalizeStylesheet(new CompileStylesheetMetadata({ styles: visitor.styles, styleUrls: visitor.styleUrls, moduleUrl: templateAbsUrl }));
+        let /** @type {?} */ encapsulation = prenomData.encapsulation;
         if (isBlank(encapsulation)) {
             encapsulation = this._config.defaultEncapsulation;
         }
-        var /** @type {?} */ styles = templateMetadataStyles.styles.concat(templateStyles.styles);
-        var /** @type {?} */ styleUrls = templateMetadataStyles.styleUrls.concat(templateStyles.styleUrls);
+        const /** @type {?} */ styles = templateMetadataStyles.styles.concat(templateStyles.styles);
+        const /** @type {?} */ styleUrls = templateMetadataStyles.styleUrls.concat(templateStyles.styleUrls);
         if (encapsulation === ViewEncapsulation.Emulated && styles.length === 0 &&
             styleUrls.length === 0) {
             encapsulation = ViewEncapsulation.None;
         }
         return new CompileTemplateMetadata({
-            encapsulation: encapsulation,
-            template: template,
-            templateUrl: templateAbsUrl, styles: styles, styleUrls: styleUrls,
+            encapsulation,
+            template,
+            templateUrl: templateAbsUrl, styles, styleUrls,
             ngContentSelectors: visitor.ngContentSelectors,
             animations: prenomData.animations,
             interpolation: prenomData.interpolation,
         });
-    };
+    }
     /**
      * @param {?} templateMeta
      * @return {?}
      */
-    DirectiveNormalizer.prototype.normalizeExternalStylesheets = function (templateMeta) {
+    normalizeExternalStylesheets(templateMeta) {
         return this._loadMissingExternalStylesheets(templateMeta.styleUrls)
-            .then(function (externalStylesheets) { return new CompileTemplateMetadata({
+            .then((externalStylesheets) => new CompileTemplateMetadata({
             encapsulation: templateMeta.encapsulation,
             template: templateMeta.template,
             templateUrl: templateMeta.templateUrl,
@@ -159,52 +156,48 @@ export var DirectiveNormalizer = (function () {
             ngContentSelectors: templateMeta.ngContentSelectors,
             animations: templateMeta.animations,
             interpolation: templateMeta.interpolation
-        }); });
-    };
+        }));
+    }
     /**
      * @param {?} styleUrls
      * @param {?=} loadedStylesheets
      * @return {?}
      */
-    DirectiveNormalizer.prototype._loadMissingExternalStylesheets = function (styleUrls, loadedStylesheets) {
-        var _this = this;
-        if (loadedStylesheets === void 0) { loadedStylesheets = new Map(); }
+    _loadMissingExternalStylesheets(styleUrls, loadedStylesheets = new Map()) {
         return Promise
-            .all(styleUrls.filter(function (styleUrl) { return !loadedStylesheets.has(styleUrl); })
-            .map(function (styleUrl) { return _this._fetch(styleUrl).then(function (loadedStyle) {
-            var /** @type {?} */ stylesheet = _this.normalizeStylesheet(new CompileStylesheetMetadata({ styles: [loadedStyle], moduleUrl: styleUrl }));
+            .all(styleUrls.filter((styleUrl) => !loadedStylesheets.has(styleUrl))
+            .map(styleUrl => this._fetch(styleUrl).then((loadedStyle) => {
+            const /** @type {?} */ stylesheet = this.normalizeStylesheet(new CompileStylesheetMetadata({ styles: [loadedStyle], moduleUrl: styleUrl }));
             loadedStylesheets.set(styleUrl, stylesheet);
-            return _this._loadMissingExternalStylesheets(stylesheet.styleUrls, loadedStylesheets);
-        }); }))
-            .then(function (_) { return Array.from(loadedStylesheets.values()); });
-    };
+            return this._loadMissingExternalStylesheets(stylesheet.styleUrls, loadedStylesheets);
+        })))
+            .then((_) => Array.from(loadedStylesheets.values()));
+    }
     /**
      * @param {?} stylesheet
      * @return {?}
      */
-    DirectiveNormalizer.prototype.normalizeStylesheet = function (stylesheet) {
-        var _this = this;
-        var /** @type {?} */ allStyleUrls = stylesheet.styleUrls.filter(isStyleUrlResolvable)
-            .map(function (url) { return _this._urlResolver.resolve(stylesheet.moduleUrl, url); });
-        var /** @type {?} */ allStyles = stylesheet.styles.map(function (style) {
-            var /** @type {?} */ styleWithImports = extractStyleUrls(_this._urlResolver, stylesheet.moduleUrl, style);
-            allStyleUrls.push.apply(allStyleUrls, styleWithImports.styleUrls);
+    normalizeStylesheet(stylesheet) {
+        const /** @type {?} */ allStyleUrls = stylesheet.styleUrls.filter(isStyleUrlResolvable)
+            .map(url => this._urlResolver.resolve(stylesheet.moduleUrl, url));
+        const /** @type {?} */ allStyles = stylesheet.styles.map(style => {
+            const /** @type {?} */ styleWithImports = extractStyleUrls(this._urlResolver, stylesheet.moduleUrl, style);
+            allStyleUrls.push(...styleWithImports.styleUrls);
             return styleWithImports.style;
         });
         return new CompileStylesheetMetadata({ styles: allStyles, styleUrls: allStyleUrls, moduleUrl: stylesheet.moduleUrl });
-    };
-    DirectiveNormalizer.decorators = [
-        { type: Injectable },
-    ];
-    /** @nocollapse */
-    DirectiveNormalizer.ctorParameters = function () { return [
-        { type: ResourceLoader, },
-        { type: UrlResolver, },
-        { type: HtmlParser, },
-        { type: CompilerConfig, },
-    ]; };
-    return DirectiveNormalizer;
-}());
+    }
+}
+DirectiveNormalizer.decorators = [
+    { type: Injectable },
+];
+/** @nocollapse */
+DirectiveNormalizer.ctorParameters = () => [
+    { type: ResourceLoader, },
+    { type: UrlResolver, },
+    { type: HtmlParser, },
+    { type: CompilerConfig, },
+];
 function DirectiveNormalizer_tsickle_Closure_declarations() {
     /** @type {?} */
     DirectiveNormalizer.decorators;
@@ -224,8 +217,8 @@ function DirectiveNormalizer_tsickle_Closure_declarations() {
     /** @type {?} */
     DirectiveNormalizer.prototype._config;
 }
-var TemplatePreparseVisitor = (function () {
-    function TemplatePreparseVisitor() {
+class TemplatePreparseVisitor {
+    constructor() {
         this.ngContentSelectors = [];
         this.styles = [];
         this.styleUrls = [];
@@ -236,8 +229,8 @@ var TemplatePreparseVisitor = (function () {
      * @param {?} context
      * @return {?}
      */
-    TemplatePreparseVisitor.prototype.visitElement = function (ast, context) {
-        var /** @type {?} */ preparsedElement = preparseElement(ast);
+    visitElement(ast, context) {
+        const /** @type {?} */ preparsedElement = preparseElement(ast);
         switch (preparsedElement.type) {
             case PreparsedElementType.NG_CONTENT:
                 if (this.ngNonBindableStackCount === 0) {
@@ -245,13 +238,13 @@ var TemplatePreparseVisitor = (function () {
                 }
                 break;
             case PreparsedElementType.STYLE:
-                var /** @type {?} */ textContent_1 = '';
-                ast.children.forEach(function (child) {
+                let /** @type {?} */ textContent = '';
+                ast.children.forEach(child => {
                     if (child instanceof html.Text) {
-                        textContent_1 += child.value;
+                        textContent += child.value;
                     }
                 });
-                this.styles.push(textContent_1);
+                this.styles.push(textContent);
                 break;
             case PreparsedElementType.STYLESHEET:
                 this.styleUrls.push(preparsedElement.hrefAttr);
@@ -267,39 +260,38 @@ var TemplatePreparseVisitor = (function () {
             this.ngNonBindableStackCount--;
         }
         return null;
-    };
+    }
     /**
      * @param {?} ast
      * @param {?} context
      * @return {?}
      */
-    TemplatePreparseVisitor.prototype.visitComment = function (ast, context) { return null; };
+    visitComment(ast, context) { return null; }
     /**
      * @param {?} ast
      * @param {?} context
      * @return {?}
      */
-    TemplatePreparseVisitor.prototype.visitAttribute = function (ast, context) { return null; };
+    visitAttribute(ast, context) { return null; }
     /**
      * @param {?} ast
      * @param {?} context
      * @return {?}
      */
-    TemplatePreparseVisitor.prototype.visitText = function (ast, context) { return null; };
+    visitText(ast, context) { return null; }
     /**
      * @param {?} ast
      * @param {?} context
      * @return {?}
      */
-    TemplatePreparseVisitor.prototype.visitExpansion = function (ast, context) { return null; };
+    visitExpansion(ast, context) { return null; }
     /**
      * @param {?} ast
      * @param {?} context
      * @return {?}
      */
-    TemplatePreparseVisitor.prototype.visitExpansionCase = function (ast, context) { return null; };
-    return TemplatePreparseVisitor;
-}());
+    visitExpansionCase(ast, context) { return null; }
+}
 function TemplatePreparseVisitor_tsickle_Closure_declarations() {
     /** @type {?} */
     TemplatePreparseVisitor.prototype.ngContentSelectors;

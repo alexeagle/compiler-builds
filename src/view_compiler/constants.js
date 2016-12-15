@@ -8,63 +8,48 @@
 import { createEnumExpression } from '../compiler_util/identifier_util';
 import { Identifiers } from '../identifiers';
 import * as o from '../output/output_ast';
-export var ViewTypeEnum = (function () {
-    function ViewTypeEnum() {
-    }
+export class ViewTypeEnum {
     /**
      * @param {?} value
      * @return {?}
      */
-    ViewTypeEnum.fromValue = function (value) {
+    static fromValue(value) {
         return createEnumExpression(Identifiers.ViewType, value);
-    };
-    return ViewTypeEnum;
-}());
-export var ViewEncapsulationEnum = (function () {
-    function ViewEncapsulationEnum() {
     }
+}
+export class ViewEncapsulationEnum {
     /**
      * @param {?} value
      * @return {?}
      */
-    ViewEncapsulationEnum.fromValue = function (value) {
+    static fromValue(value) {
         return createEnumExpression(Identifiers.ViewEncapsulation, value);
-    };
-    return ViewEncapsulationEnum;
-}());
-export var ChangeDetectionStrategyEnum = (function () {
-    function ChangeDetectionStrategyEnum() {
     }
+}
+export class ChangeDetectionStrategyEnum {
     /**
      * @param {?} value
      * @return {?}
      */
-    ChangeDetectionStrategyEnum.fromValue = function (value) {
+    static fromValue(value) {
         return createEnumExpression(Identifiers.ChangeDetectionStrategy, value);
-    };
-    return ChangeDetectionStrategyEnum;
-}());
-export var ChangeDetectorStatusEnum = (function () {
-    function ChangeDetectorStatusEnum() {
     }
+}
+export class ChangeDetectorStatusEnum {
     /**
      * @param {?} value
      * @return {?}
      */
-    ChangeDetectorStatusEnum.fromValue = function (value) {
+    static fromValue(value) {
         return createEnumExpression(Identifiers.ChangeDetectorStatus, value);
-    };
-    return ChangeDetectorStatusEnum;
-}());
-export var ViewConstructorVars = (function () {
-    function ViewConstructorVars() {
     }
-    ViewConstructorVars.viewUtils = o.variable('viewUtils');
-    ViewConstructorVars.parentView = o.variable('parentView');
-    ViewConstructorVars.parentIndex = o.variable('parentIndex');
-    ViewConstructorVars.parentElement = o.variable('parentElement');
-    return ViewConstructorVars;
-}());
+}
+export class ViewConstructorVars {
+}
+ViewConstructorVars.viewUtils = o.variable('viewUtils');
+ViewConstructorVars.parentView = o.variable('parentView');
+ViewConstructorVars.parentIndex = o.variable('parentIndex');
+ViewConstructorVars.parentElement = o.variable('parentElement');
 function ViewConstructorVars_tsickle_Closure_declarations() {
     /** @type {?} */
     ViewConstructorVars.viewUtils;
@@ -75,27 +60,21 @@ function ViewConstructorVars_tsickle_Closure_declarations() {
     /** @type {?} */
     ViewConstructorVars.parentElement;
 }
-export var ViewProperties = (function () {
-    function ViewProperties() {
-    }
-    ViewProperties.renderer = o.THIS_EXPR.prop('renderer');
-    ViewProperties.viewUtils = o.THIS_EXPR.prop('viewUtils');
-    return ViewProperties;
-}());
+export class ViewProperties {
+}
+ViewProperties.renderer = o.THIS_EXPR.prop('renderer');
+ViewProperties.viewUtils = o.THIS_EXPR.prop('viewUtils');
 function ViewProperties_tsickle_Closure_declarations() {
     /** @type {?} */
     ViewProperties.renderer;
     /** @type {?} */
     ViewProperties.viewUtils;
 }
-export var InjectMethodVars = (function () {
-    function InjectMethodVars() {
-    }
-    InjectMethodVars.token = o.variable('token');
-    InjectMethodVars.requestNodeIndex = o.variable('requestNodeIndex');
-    InjectMethodVars.notFoundResult = o.variable('notFoundResult');
-    return InjectMethodVars;
-}());
+export class InjectMethodVars {
+}
+InjectMethodVars.token = o.variable('token');
+InjectMethodVars.requestNodeIndex = o.variable('requestNodeIndex');
+InjectMethodVars.notFoundResult = o.variable('notFoundResult');
 function InjectMethodVars_tsickle_Closure_declarations() {
     /** @type {?} */
     InjectMethodVars.token;
@@ -104,14 +83,11 @@ function InjectMethodVars_tsickle_Closure_declarations() {
     /** @type {?} */
     InjectMethodVars.notFoundResult;
 }
-export var DetectChangesVars = (function () {
-    function DetectChangesVars() {
-    }
-    DetectChangesVars.throwOnChange = o.variable("throwOnChange");
-    DetectChangesVars.changes = o.variable("changes");
-    DetectChangesVars.changed = o.variable("changed");
-    return DetectChangesVars;
-}());
+export class DetectChangesVars {
+}
+DetectChangesVars.throwOnChange = o.variable(`throwOnChange`);
+DetectChangesVars.changes = o.variable(`changes`);
+DetectChangesVars.changed = o.variable(`changed`);
 function DetectChangesVars_tsickle_Closure_declarations() {
     /** @type {?} */
     DetectChangesVars.throwOnChange;

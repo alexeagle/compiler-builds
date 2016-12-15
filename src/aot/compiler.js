@@ -13,7 +13,7 @@ import * as o from '../output/output_ast';
 import { ComponentFactoryDependency, DirectiveWrapperDependency, ViewClassDependency } from '../view_compiler/view_compiler';
 import { GeneratedFile } from './generated_file';
 import { filterFileByPatterns } from './utils';
-export var AotCompiler = (function () {
+export class AotCompiler {
     /**
      * @param {?} _metadataResolver
      * @param {?} _templateParser
@@ -29,7 +29,7 @@ export var AotCompiler = (function () {
      * @param {?} _staticReflector
      * @param {?} _options
      */
-    function AotCompiler(_metadataResolver, _templateParser, _styleCompiler, _viewCompiler, _dirWrapperCompiler, _ngModuleCompiler, _outputEmitter, _summaryResolver, _localeId, _translationFormat, _animationParser, _staticReflector, _options) {
+    constructor(_metadataResolver, _templateParser, _styleCompiler, _viewCompiler, _dirWrapperCompiler, _ngModuleCompiler, _outputEmitter, _summaryResolver, _localeId, _translationFormat, _animationParser, _staticReflector, _options) {
         this._metadataResolver = _metadataResolver;
         this._templateParser = _templateParser;
         this._styleCompiler = _styleCompiler;
@@ -48,22 +48,21 @@ export var AotCompiler = (function () {
     /**
      * @return {?}
      */
-    AotCompiler.prototype.clearCache = function () { this._metadataResolver.clearCache(); };
+    clearCache() { this._metadataResolver.clearCache(); }
     /**
      * @param {?} rootFiles
      * @return {?}
      */
-    AotCompiler.prototype.compileAll = function (rootFiles) {
-        var _this = this;
-        var /** @type {?} */ programSymbols = extractProgramSymbols(this._staticReflector, rootFiles, this._options);
-        var _a = analyzeAndValidateNgModules(programSymbols, this._options, this._metadataResolver), ngModuleByPipeOrDirective = _a.ngModuleByPipeOrDirective, files = _a.files, ngModules = _a.ngModules;
+    compileAll(rootFiles) {
+        const /** @type {?} */ programSymbols = extractProgramSymbols(this._staticReflector, rootFiles, this._options);
+        const { ngModuleByPipeOrDirective, files, ngModules } = analyzeAndValidateNgModules(programSymbols, this._options, this._metadataResolver);
         return Promise
-            .all(ngModules.map(function (ngModule) { return _this._metadataResolver.loadNgModuleDirectiveAndPipeMetadata(ngModule.type.reference, false); }))
-            .then(function () {
-            var /** @type {?} */ sourceModules = files.map(function (file) { return _this._compileSrcFile(file.srcUrl, ngModuleByPipeOrDirective, file.directives, file.pipes, file.ngModules); });
+            .all(ngModules.map(ngModule => this._metadataResolver.loadNgModuleDirectiveAndPipeMetadata(ngModule.type.reference, false)))
+            .then(() => {
+            const /** @type {?} */ sourceModules = files.map(file => this._compileSrcFile(file.srcUrl, ngModuleByPipeOrDirective, file.directives, file.pipes, file.ngModules));
             return ListWrapper.flatten(sourceModules);
         });
-    };
+    }
     /**
      * @param {?} srcFileUrl
      * @param {?} ngModuleByPipeOrDirective
@@ -72,53 +71,55 @@ export var AotCompiler = (function () {
      * @param {?} ngModules
      * @return {?}
      */
-    AotCompiler.prototype._compileSrcFile = function (srcFileUrl, ngModuleByPipeOrDirective, directives, pipes, ngModules) {
-        var _this = this;
-        var /** @type {?} */ fileSuffix = _splitTypescriptSuffix(srcFileUrl)[1];
-        var /** @type {?} */ statements = [];
-        var /** @type {?} */ exportedVars = [];
-        var /** @type {?} */ generatedFiles = [];
+    _compileSrcFile(srcFileUrl, ngModuleByPipeOrDirective, directives, pipes, ngModules) {
+        const /** @type {?} */ fileSuffix = _splitTypescriptSuffix(srcFileUrl)[1];
+        const /** @type {?} */ statements = [];
+        const /** @type {?} */ exportedVars = [];
+        const /** @type {?} */ generatedFiles = [];
         // write summary files
-        var /** @type {?} */ summaries = ngModules.map(function (ref) { return _this._metadataResolver.getNgModuleSummary(ref); }).concat(directives.map(function (ref) { return _this._metadataResolver.getDirectiveSummary(ref); }), pipes.map(function (ref) { return _this._metadataResolver.getPipeSummary(ref); }));
+        const /** @type {?} */ summaries = [
+            ...ngModules.map(ref => this._metadataResolver.getNgModuleSummary(ref)),
+            ...directives.map(ref => this._metadataResolver.getDirectiveSummary(ref)),
+            ...pipes.map(ref => this._metadataResolver.getPipeSummary(ref))
+        ];
         generatedFiles.push(this._summaryResolver.serializeSummaries(srcFileUrl, summaries));
         // compile all ng modules
-        exportedVars.push.apply(exportedVars, ngModules.map(function (ngModuleType) { return _this._compileModule(ngModuleType, statements); }));
+        exportedVars.push(...ngModules.map((ngModuleType) => this._compileModule(ngModuleType, statements)));
         // compile directive wrappers
-        exportedVars.push.apply(exportedVars, directives.map(function (directiveType) { return _this._compileDirectiveWrapper(directiveType, statements); }));
+        exportedVars.push(...directives.map((directiveType) => this._compileDirectiveWrapper(directiveType, statements)));
         // compile components
-        directives.forEach(function (dirType) {
-            var /** @type {?} */ compMeta = _this._metadataResolver.getDirectiveMetadata(/** @type {?} */ (dirType));
+        directives.forEach((dirType) => {
+            const /** @type {?} */ compMeta = this._metadataResolver.getDirectiveMetadata(/** @type {?} */ (dirType));
             if (!compMeta.isComponent) {
                 return Promise.resolve(null);
             }
-            var /** @type {?} */ ngModule = ngModuleByPipeOrDirective.get(dirType);
+            const /** @type {?} */ ngModule = ngModuleByPipeOrDirective.get(dirType);
             if (!ngModule) {
-                throw new Error("Internal Error: cannot determine the module for component " + identifierName(compMeta.type) + "!");
+                throw new Error(`Internal Error: cannot determine the module for component ${identifierName(compMeta.type)}!`);
             }
             _assertComponent(compMeta);
             // compile styles
-            var /** @type {?} */ stylesCompileResults = _this._styleCompiler.compileComponent(compMeta);
-            stylesCompileResults.externalStylesheets.forEach(function (compiledStyleSheet) {
-                generatedFiles.push(_this._codgenStyles(srcFileUrl, compiledStyleSheet, fileSuffix));
+            const /** @type {?} */ stylesCompileResults = this._styleCompiler.compileComponent(compMeta);
+            stylesCompileResults.externalStylesheets.forEach((compiledStyleSheet) => {
+                generatedFiles.push(this._codgenStyles(srcFileUrl, compiledStyleSheet, fileSuffix));
             });
             // compile components
-            exportedVars.push(_this._compileComponentFactory(compMeta, ngModule, fileSuffix, statements), _this._compileComponent(compMeta, ngModule, ngModule.transitiveModule.directives, stylesCompileResults.componentStylesheet, fileSuffix, statements));
+            exportedVars.push(this._compileComponentFactory(compMeta, ngModule, fileSuffix, statements), this._compileComponent(compMeta, ngModule, ngModule.transitiveModule.directives, stylesCompileResults.componentStylesheet, fileSuffix, statements));
         });
         if (statements.length > 0) {
-            var /** @type {?} */ srcModule = this._codegenSourceModule(srcFileUrl, _ngfactoryModuleUrl(srcFileUrl), statements, exportedVars);
+            const /** @type {?} */ srcModule = this._codegenSourceModule(srcFileUrl, _ngfactoryModuleUrl(srcFileUrl), statements, exportedVars);
             generatedFiles.unshift(srcModule);
         }
         return generatedFiles;
-    };
+    }
     /**
      * @param {?} ngModuleType
      * @param {?} targetStatements
      * @return {?}
      */
-    AotCompiler.prototype._compileModule = function (ngModuleType, targetStatements) {
-        var _this = this;
-        var /** @type {?} */ ngModule = this._metadataResolver.getNgModuleMetadata(ngModuleType);
-        var /** @type {?} */ providers = [];
+    _compileModule(ngModuleType, targetStatements) {
+        const /** @type {?} */ ngModule = this._metadataResolver.getNgModuleMetadata(ngModuleType);
+        const /** @type {?} */ providers = [];
         if (this._localeId) {
             providers.push({
                 token: createIdentifierToken(Identifiers.LOCALE_ID),
@@ -131,24 +132,24 @@ export var AotCompiler = (function () {
                 useValue: this._translationFormat
             });
         }
-        var /** @type {?} */ appCompileResult = this._ngModuleCompiler.compile(ngModule, providers);
-        appCompileResult.dependencies.forEach(function (dep) {
-            dep.placeholder.reference = _this._staticReflector.getStaticSymbol(_ngfactoryModuleUrl(identifierModuleUrl(dep.comp)), _componentFactoryName(dep.comp));
+        const /** @type {?} */ appCompileResult = this._ngModuleCompiler.compile(ngModule, providers);
+        appCompileResult.dependencies.forEach((dep) => {
+            dep.placeholder.reference = this._staticReflector.getStaticSymbol(_ngfactoryModuleUrl(identifierModuleUrl(dep.comp)), _componentFactoryName(dep.comp));
         });
-        targetStatements.push.apply(targetStatements, appCompileResult.statements);
+        targetStatements.push(...appCompileResult.statements);
         return appCompileResult.ngModuleFactoryVar;
-    };
+    }
     /**
      * @param {?} directiveType
      * @param {?} targetStatements
      * @return {?}
      */
-    AotCompiler.prototype._compileDirectiveWrapper = function (directiveType, targetStatements) {
-        var /** @type {?} */ dirMeta = this._metadataResolver.getDirectiveMetadata(directiveType);
-        var /** @type {?} */ dirCompileResult = this._dirWrapperCompiler.compile(dirMeta);
-        targetStatements.push.apply(targetStatements, dirCompileResult.statements);
+    _compileDirectiveWrapper(directiveType, targetStatements) {
+        const /** @type {?} */ dirMeta = this._metadataResolver.getDirectiveMetadata(directiveType);
+        const /** @type {?} */ dirCompileResult = this._dirWrapperCompiler.compile(dirMeta);
+        targetStatements.push(...dirCompileResult.statements);
         return dirCompileResult.dirWrapperClassVar;
-    };
+    }
     /**
      * @param {?} compMeta
      * @param {?} ngModule
@@ -156,10 +157,10 @@ export var AotCompiler = (function () {
      * @param {?} targetStatements
      * @return {?}
      */
-    AotCompiler.prototype._compileComponentFactory = function (compMeta, ngModule, fileSuffix, targetStatements) {
-        var /** @type {?} */ hostMeta = createHostComponentMeta(this._staticReflector.getStaticSymbol(identifierModuleUrl(compMeta.type), identifierName(compMeta.type) + "_Host"), compMeta);
-        var /** @type {?} */ hostViewFactoryVar = this._compileComponent(hostMeta, ngModule, [compMeta.type], null, fileSuffix, targetStatements);
-        var /** @type {?} */ compFactoryVar = _componentFactoryName(compMeta.type);
+    _compileComponentFactory(compMeta, ngModule, fileSuffix, targetStatements) {
+        const /** @type {?} */ hostMeta = createHostComponentMeta(this._staticReflector.getStaticSymbol(identifierModuleUrl(compMeta.type), `${identifierName(compMeta.type)}_Host`), compMeta);
+        const /** @type {?} */ hostViewFactoryVar = this._compileComponent(hostMeta, ngModule, [compMeta.type], null, fileSuffix, targetStatements);
+        const /** @type {?} */ compFactoryVar = _componentFactoryName(compMeta.type);
         targetStatements.push(o.variable(compFactoryVar)
             .set(o.importExpr(createIdentifier(Identifiers.ComponentFactory), [o.importType(compMeta.type)])
             .instantiate([
@@ -169,7 +170,7 @@ export var AotCompiler = (function () {
         ], o.importType(createIdentifier(Identifiers.ComponentFactory), [o.importType(compMeta.type)], [o.TypeModifier.Const])))
             .toDeclStmt(null, [o.StmtModifier.Final]));
         return compFactoryVar;
-    };
+    }
     /**
      * @param {?} compMeta
      * @param {?} ngModule
@@ -179,32 +180,31 @@ export var AotCompiler = (function () {
      * @param {?} targetStatements
      * @return {?}
      */
-    AotCompiler.prototype._compileComponent = function (compMeta, ngModule, directiveIdentifiers, componentStyles, fileSuffix, targetStatements) {
-        var _this = this;
-        var /** @type {?} */ parsedAnimations = this._animationParser.parseComponent(compMeta);
-        var /** @type {?} */ directives = directiveIdentifiers.map(function (dir) { return _this._metadataResolver.getDirectiveSummary(dir.reference); });
-        var /** @type {?} */ pipes = ngModule.transitiveModule.pipes.map(function (pipe) { return _this._metadataResolver.getPipeSummary(pipe.reference); });
-        var /** @type {?} */ parsedTemplate = this._templateParser.parse(compMeta, compMeta.template.template, directives, pipes, ngModule.schemas, identifierName(compMeta.type));
-        var /** @type {?} */ stylesExpr = componentStyles ? o.variable(componentStyles.stylesVar) : o.literalArr([]);
-        var /** @type {?} */ compiledAnimations = this._animationCompiler.compile(identifierName(compMeta.type), parsedAnimations);
-        var /** @type {?} */ viewResult = this._viewCompiler.compileComponent(compMeta, parsedTemplate, stylesExpr, pipes, compiledAnimations);
+    _compileComponent(compMeta, ngModule, directiveIdentifiers, componentStyles, fileSuffix, targetStatements) {
+        const /** @type {?} */ parsedAnimations = this._animationParser.parseComponent(compMeta);
+        const /** @type {?} */ directives = directiveIdentifiers.map(dir => this._metadataResolver.getDirectiveSummary(dir.reference));
+        const /** @type {?} */ pipes = ngModule.transitiveModule.pipes.map(pipe => this._metadataResolver.getPipeSummary(pipe.reference));
+        const /** @type {?} */ parsedTemplate = this._templateParser.parse(compMeta, compMeta.template.template, directives, pipes, ngModule.schemas, identifierName(compMeta.type));
+        const /** @type {?} */ stylesExpr = componentStyles ? o.variable(componentStyles.stylesVar) : o.literalArr([]);
+        const /** @type {?} */ compiledAnimations = this._animationCompiler.compile(identifierName(compMeta.type), parsedAnimations);
+        const /** @type {?} */ viewResult = this._viewCompiler.compileComponent(compMeta, parsedTemplate, stylesExpr, pipes, compiledAnimations);
         if (componentStyles) {
-            targetStatements.push.apply(targetStatements, _resolveStyleStatements(this._staticReflector, componentStyles, fileSuffix));
+            targetStatements.push(..._resolveStyleStatements(this._staticReflector, componentStyles, fileSuffix));
         }
-        compiledAnimations.forEach(function (entry) { return targetStatements.push.apply(targetStatements, entry.statements); });
-        targetStatements.push.apply(targetStatements, _resolveViewStatements(this._staticReflector, viewResult));
+        compiledAnimations.forEach(entry => targetStatements.push(...entry.statements));
+        targetStatements.push(..._resolveViewStatements(this._staticReflector, viewResult));
         return viewResult.viewClassVar;
-    };
+    }
     /**
      * @param {?} fileUrl
      * @param {?} stylesCompileResult
      * @param {?} fileSuffix
      * @return {?}
      */
-    AotCompiler.prototype._codgenStyles = function (fileUrl, stylesCompileResult, fileSuffix) {
+    _codgenStyles(fileUrl, stylesCompileResult, fileSuffix) {
         _resolveStyleStatements(this._staticReflector, stylesCompileResult, fileSuffix);
         return this._codegenSourceModule(fileUrl, _stylesModuleUrl(stylesCompileResult.meta.moduleUrl, stylesCompileResult.isShimmed, fileSuffix), stylesCompileResult.statements, [stylesCompileResult.stylesVar]);
-    };
+    }
     /**
      * @param {?} srcFileUrl
      * @param {?} genFileUrl
@@ -212,11 +212,10 @@ export var AotCompiler = (function () {
      * @param {?} exportedVars
      * @return {?}
      */
-    AotCompiler.prototype._codegenSourceModule = function (srcFileUrl, genFileUrl, statements, exportedVars) {
+    _codegenSourceModule(srcFileUrl, genFileUrl, statements, exportedVars) {
         return new GeneratedFile(srcFileUrl, genFileUrl, this._outputEmitter.emitStatements(genFileUrl, statements, exportedVars));
-    };
-    return AotCompiler;
-}());
+    }
+}
 function AotCompiler_tsickle_Closure_declarations() {
     /** @type {?} */
     AotCompiler.prototype._animationCompiler;
@@ -253,18 +252,18 @@ function AotCompiler_tsickle_Closure_declarations() {
  * @return {?}
  */
 function _resolveViewStatements(reflector, compileResult) {
-    compileResult.dependencies.forEach(function (dep) {
+    compileResult.dependencies.forEach((dep) => {
         if (dep instanceof ViewClassDependency) {
-            var /** @type {?} */ vfd = (dep);
+            const /** @type {?} */ vfd = (dep);
             vfd.placeholder.reference =
                 reflector.getStaticSymbol(_ngfactoryModuleUrl(identifierModuleUrl(vfd.comp)), dep.name);
         }
         else if (dep instanceof ComponentFactoryDependency) {
-            var /** @type {?} */ cfd = (dep);
+            const /** @type {?} */ cfd = (dep);
             cfd.placeholder.reference = reflector.getStaticSymbol(_ngfactoryModuleUrl(identifierModuleUrl(cfd.comp)), _componentFactoryName(cfd.comp));
         }
         else if (dep instanceof DirectiveWrapperDependency) {
-            var /** @type {?} */ dwd = (dep);
+            const /** @type {?} */ dwd = (dep);
             dwd.placeholder.reference =
                 reflector.getStaticSymbol(_ngfactoryModuleUrl(identifierModuleUrl(dwd.dir)), dwd.name);
         }
@@ -278,7 +277,7 @@ function _resolveViewStatements(reflector, compileResult) {
  * @return {?}
  */
 function _resolveStyleStatements(reflector, compileResult, fileSuffix) {
-    compileResult.dependencies.forEach(function (dep) {
+    compileResult.dependencies.forEach((dep) => {
         dep.valuePlaceholder.reference = reflector.getStaticSymbol(_stylesModuleUrl(dep.moduleUrl, dep.isShimmed, fileSuffix), dep.name);
     });
     return compileResult.statements;
@@ -288,15 +287,15 @@ function _resolveStyleStatements(reflector, compileResult, fileSuffix) {
  * @return {?}
  */
 function _ngfactoryModuleUrl(dirUrl) {
-    var /** @type {?} */ urlWithSuffix = _splitTypescriptSuffix(dirUrl);
-    return urlWithSuffix[0] + ".ngfactory" + urlWithSuffix[1];
+    const /** @type {?} */ urlWithSuffix = _splitTypescriptSuffix(dirUrl);
+    return `${urlWithSuffix[0]}.ngfactory${urlWithSuffix[1]}`;
 }
 /**
  * @param {?} comp
  * @return {?}
  */
 function _componentFactoryName(comp) {
-    return identifierName(comp) + "NgFactory";
+    return `${identifierName(comp)}NgFactory`;
 }
 /**
  * @param {?} stylesheetUrl
@@ -305,7 +304,7 @@ function _componentFactoryName(comp) {
  * @return {?}
  */
 function _stylesModuleUrl(stylesheetUrl, shim, suffix) {
-    return shim ? stylesheetUrl + ".shim" + suffix : "" + stylesheetUrl + suffix;
+    return `${stylesheetUrl}${shim ? '.shim' : ''}.ngstyle${suffix}`;
 }
 /**
  * @param {?} meta
@@ -313,7 +312,7 @@ function _stylesModuleUrl(stylesheetUrl, shim, suffix) {
  */
 function _assertComponent(meta) {
     if (!meta.isComponent) {
-        throw new Error("Could not compile '" + identifierName(meta.type) + "' because it is not a component.");
+        throw new Error(`Could not compile '${identifierName(meta.type)}' because it is not a component.`);
     }
 }
 /**
@@ -324,7 +323,7 @@ function _splitTypescriptSuffix(path) {
     if (path.endsWith('.d.ts')) {
         return [path.slice(0, -5), '.ts'];
     }
-    var /** @type {?} */ lastDot = path.lastIndexOf('.');
+    const /** @type {?} */ lastDot = path.lastIndexOf('.');
     if (lastDot !== -1) {
         return [path.substring(0, lastDot), path.substring(lastDot)];
     }
@@ -337,7 +336,7 @@ function _splitTypescriptSuffix(path) {
  * @return {?}
  */
 export function analyzeNgModules(programStaticSymbols, options, metadataResolver) {
-    var _a = _createNgModules(programStaticSymbols, options, metadataResolver), ngModules = _a.ngModules, symbolsMissingModule = _a.symbolsMissingModule;
+    const { ngModules, symbolsMissingModule } = _createNgModules(programStaticSymbols, options, metadataResolver);
     return _analyzeNgModules(ngModules, symbolsMissingModule);
 }
 /**
@@ -347,9 +346,9 @@ export function analyzeNgModules(programStaticSymbols, options, metadataResolver
  * @return {?}
  */
 export function analyzeAndValidateNgModules(programStaticSymbols, options, metadataResolver) {
-    var /** @type {?} */ result = analyzeNgModules(programStaticSymbols, options, metadataResolver);
+    const /** @type {?} */ result = analyzeNgModules(programStaticSymbols, options, metadataResolver);
     if (result.symbolsMissingModule && result.symbolsMissingModule.length) {
-        var /** @type {?} */ messages = result.symbolsMissingModule.map(function (s) { return ("Cannot determine the module for class " + s.name + " in " + s.filePath + "!"); });
+        const /** @type {?} */ messages = result.symbolsMissingModule.map(s => `Cannot determine the module for class ${s.name} in ${s.filePath}!`);
         throw new Error(messages.join('\n'));
     }
     return result;
@@ -360,48 +359,48 @@ export function analyzeAndValidateNgModules(programStaticSymbols, options, metad
  * @return {?}
  */
 function _analyzeNgModules(ngModuleMetas, symbolsMissingModule) {
-    var /** @type {?} */ moduleMetasByRef = new Map();
-    ngModuleMetas.forEach(function (ngModule) { return moduleMetasByRef.set(ngModule.type.reference, ngModule); });
-    var /** @type {?} */ ngModuleByPipeOrDirective = new Map();
-    var /** @type {?} */ ngModulesByFile = new Map();
-    var /** @type {?} */ ngDirectivesByFile = new Map();
-    var /** @type {?} */ ngPipesByFile = new Map();
-    var /** @type {?} */ filePaths = new Set();
+    const /** @type {?} */ moduleMetasByRef = new Map();
+    ngModuleMetas.forEach((ngModule) => moduleMetasByRef.set(ngModule.type.reference, ngModule));
+    const /** @type {?} */ ngModuleByPipeOrDirective = new Map();
+    const /** @type {?} */ ngModulesByFile = new Map();
+    const /** @type {?} */ ngDirectivesByFile = new Map();
+    const /** @type {?} */ ngPipesByFile = new Map();
+    const /** @type {?} */ filePaths = new Set();
     // Looping over all modules to construct:
     // - a map from file to modules `ngModulesByFile`,
     // - a map from file to directives `ngDirectivesByFile`,
     // - a map from file to pipes `ngPipesByFile`,
     // - a map from directive/pipe to module `ngModuleByPipeOrDirective`.
-    ngModuleMetas.forEach(function (ngModuleMeta) {
-        var /** @type {?} */ srcFileUrl = ngModuleMeta.type.reference.filePath;
+    ngModuleMetas.forEach((ngModuleMeta) => {
+        const /** @type {?} */ srcFileUrl = ngModuleMeta.type.reference.filePath;
         filePaths.add(srcFileUrl);
         ngModulesByFile.set(srcFileUrl, (ngModulesByFile.get(srcFileUrl) || []).concat(ngModuleMeta.type.reference));
-        ngModuleMeta.declaredDirectives.forEach(function (dirIdentifier) {
-            var /** @type {?} */ fileUrl = dirIdentifier.reference.filePath;
+        ngModuleMeta.declaredDirectives.forEach((dirIdentifier) => {
+            const /** @type {?} */ fileUrl = dirIdentifier.reference.filePath;
             filePaths.add(fileUrl);
             ngDirectivesByFile.set(fileUrl, (ngDirectivesByFile.get(fileUrl) || []).concat(dirIdentifier.reference));
             ngModuleByPipeOrDirective.set(dirIdentifier.reference, ngModuleMeta);
         });
-        ngModuleMeta.declaredPipes.forEach(function (pipeIdentifier) {
-            var /** @type {?} */ fileUrl = pipeIdentifier.reference.filePath;
+        ngModuleMeta.declaredPipes.forEach((pipeIdentifier) => {
+            const /** @type {?} */ fileUrl = pipeIdentifier.reference.filePath;
             filePaths.add(fileUrl);
             ngPipesByFile.set(fileUrl, (ngPipesByFile.get(fileUrl) || []).concat(pipeIdentifier.reference));
             ngModuleByPipeOrDirective.set(pipeIdentifier.reference, ngModuleMeta);
         });
     });
-    var /** @type {?} */ files = [];
-    filePaths.forEach(function (srcUrl) {
-        var /** @type {?} */ directives = ngDirectivesByFile.get(srcUrl) || [];
-        var /** @type {?} */ pipes = ngPipesByFile.get(srcUrl) || [];
-        var /** @type {?} */ ngModules = ngModulesByFile.get(srcUrl) || [];
-        files.push({ srcUrl: srcUrl, directives: directives, pipes: pipes, ngModules: ngModules });
+    const /** @type {?} */ files = [];
+    filePaths.forEach((srcUrl) => {
+        const /** @type {?} */ directives = ngDirectivesByFile.get(srcUrl) || [];
+        const /** @type {?} */ pipes = ngPipesByFile.get(srcUrl) || [];
+        const /** @type {?} */ ngModules = ngModulesByFile.get(srcUrl) || [];
+        files.push({ srcUrl, directives, pipes, ngModules });
     });
     return {
         // map directive/pipe to module
-        ngModuleByPipeOrDirective: ngModuleByPipeOrDirective,
+        ngModuleByPipeOrDirective,
         // list modules and directives for every source file
-        files: files,
-        ngModules: ngModuleMetas, symbolsMissingModule: symbolsMissingModule
+        files,
+        ngModules: ngModuleMetas, symbolsMissingModule
     };
 }
 /**
@@ -410,21 +409,19 @@ function _analyzeNgModules(ngModuleMetas, symbolsMissingModule) {
  * @param {?=} options
  * @return {?}
  */
-export function extractProgramSymbols(staticReflector, files, options) {
-    if (options === void 0) { options = {}; }
-    var /** @type {?} */ staticSymbols = [];
-    files.filter(function (fileName) { return filterFileByPatterns(fileName, options); }).forEach(function (sourceFile) {
-        var /** @type {?} */ moduleMetadata = staticReflector.getModuleMetadata(sourceFile);
+export function extractProgramSymbols(staticReflector, files, options = {}) {
+    const /** @type {?} */ staticSymbols = [];
+    files.filter(fileName => filterFileByPatterns(fileName, options)).forEach(sourceFile => {
+        const /** @type {?} */ moduleMetadata = staticReflector.getModuleMetadata(sourceFile);
         if (!moduleMetadata) {
-            console.error("WARNING: no metadata found for " + sourceFile);
+            console.error(`WARNING: no metadata found for ${sourceFile}`);
             return;
         }
-        var /** @type {?} */ metadata = moduleMetadata['metadata'];
+        const /** @type {?} */ metadata = moduleMetadata['metadata'];
         if (!metadata) {
             return;
         }
-        for (var _i = 0, _a = Object.keys(metadata); _i < _a.length; _i++) {
-            var symbol = _a[_i];
+        for (const symbol of Object.keys(metadata)) {
             if (metadata[symbol] && metadata[symbol].__symbolic == 'error') {
                 // Ignore symbols that are only included to record error information.
                 continue;
@@ -441,31 +438,31 @@ export function extractProgramSymbols(staticReflector, files, options) {
  * @return {?}
  */
 function _createNgModules(programStaticSymbols, options, metadataResolver) {
-    var /** @type {?} */ ngModules = new Map();
-    var /** @type {?} */ programPipesAndDirectives = [];
-    var /** @type {?} */ ngModulePipesAndDirective = new Set();
-    var /** @type {?} */ addNgModule = function (staticSymbol) {
+    const /** @type {?} */ ngModules = new Map();
+    const /** @type {?} */ programPipesAndDirectives = [];
+    const /** @type {?} */ ngModulePipesAndDirective = new Set();
+    const /** @type {?} */ addNgModule = (staticSymbol) => {
         if (ngModules.has(staticSymbol) || !filterFileByPatterns(staticSymbol.filePath, options)) {
             return false;
         }
-        var /** @type {?} */ ngModule = metadataResolver.getNgModuleMetadata(staticSymbol, false);
+        const /** @type {?} */ ngModule = metadataResolver.getNgModuleMetadata(staticSymbol, false);
         if (ngModule) {
             ngModules.set(ngModule.type.reference, ngModule);
-            ngModule.declaredDirectives.forEach(function (dir) { return ngModulePipesAndDirective.add(dir.reference); });
-            ngModule.declaredPipes.forEach(function (pipe) { return ngModulePipesAndDirective.add(pipe.reference); });
+            ngModule.declaredDirectives.forEach((dir) => ngModulePipesAndDirective.add(dir.reference));
+            ngModule.declaredPipes.forEach((pipe) => ngModulePipesAndDirective.add(pipe.reference));
             // For every input module add the list of transitively included modules
-            ngModule.transitiveModule.modules.forEach(function (modMeta) { return addNgModule(modMeta.reference); });
+            ngModule.transitiveModule.modules.forEach(modMeta => addNgModule(modMeta.reference));
         }
         return !!ngModule;
     };
-    programStaticSymbols.forEach(function (staticSymbol) {
+    programStaticSymbols.forEach((staticSymbol) => {
         if (!addNgModule(staticSymbol) &&
             (metadataResolver.isDirective(staticSymbol) || metadataResolver.isPipe(staticSymbol))) {
             programPipesAndDirectives.push(staticSymbol);
         }
     });
     // Throw an error if any of the program pipe or directives is not declared by a module
-    var /** @type {?} */ symbolsMissingModule = programPipesAndDirectives.filter(function (s) { return !ngModulePipesAndDirective.has(s); });
-    return { ngModules: Array.from(ngModules.values()), symbolsMissingModule: symbolsMissingModule };
+    const /** @type {?} */ symbolsMissingModule = programPipesAndDirectives.filter(s => !ngModulePipesAndDirective.has(s));
+    return { ngModules: Array.from(ngModules.values()), symbolsMissingModule };
 }
 //# sourceMappingURL=compiler.js.map

@@ -22,7 +22,7 @@ import { DomElementSchemaRegistry } from '../schema/dom_element_schema_registry'
 import { createOfflineCompileUrlResolver } from '../url_resolver';
 import { I18NHtmlParser } from './i18n_html_parser';
 import { MessageBundle } from './message_bundle';
-export var Extractor = (function () {
+export class Extractor {
     /**
      * @param {?} options
      * @param {?} host
@@ -30,7 +30,7 @@ export var Extractor = (function () {
      * @param {?} messageBundle
      * @param {?} metadataResolver
      */
-    function Extractor(options, host, staticReflector, messageBundle, metadataResolver) {
+    constructor(options, host, staticReflector, messageBundle, metadataResolver) {
         this.options = options;
         this.host = host;
         this.staticReflector = staticReflector;
@@ -41,60 +41,58 @@ export var Extractor = (function () {
      * @param {?} rootFiles
      * @return {?}
      */
-    Extractor.prototype.extract = function (rootFiles) {
-        var _this = this;
-        var /** @type {?} */ programSymbols = extractProgramSymbols(this.staticReflector, rootFiles, this.options);
-        var _a = analyzeAndValidateNgModules(programSymbols, this.options, this.metadataResolver), ngModuleByPipeOrDirective = _a.ngModuleByPipeOrDirective, files = _a.files, ngModules = _a.ngModules;
+    extract(rootFiles) {
+        const /** @type {?} */ programSymbols = extractProgramSymbols(this.staticReflector, rootFiles, this.options);
+        const { ngModuleByPipeOrDirective, files, ngModules } = analyzeAndValidateNgModules(programSymbols, this.options, this.metadataResolver);
         return Promise
-            .all(ngModules.map(function (ngModule) { return _this.metadataResolver.loadNgModuleDirectiveAndPipeMetadata(ngModule.type.reference, false); }))
-            .then(function () {
-            var /** @type {?} */ errors = [];
-            files.forEach(function (file) {
-                var /** @type {?} */ compMetas = [];
-                file.directives.forEach(function (directiveType) {
-                    var /** @type {?} */ dirMeta = _this.metadataResolver.getDirectiveMetadata(directiveType);
+            .all(ngModules.map(ngModule => this.metadataResolver.loadNgModuleDirectiveAndPipeMetadata(ngModule.type.reference, false)))
+            .then(() => {
+            const /** @type {?} */ errors = [];
+            files.forEach(file => {
+                const /** @type {?} */ compMetas = [];
+                file.directives.forEach(directiveType => {
+                    const /** @type {?} */ dirMeta = this.metadataResolver.getDirectiveMetadata(directiveType);
                     if (dirMeta && dirMeta.isComponent) {
                         compMetas.push(dirMeta);
                     }
                 });
-                compMetas.forEach(function (compMeta) {
-                    var /** @type {?} */ html = compMeta.template.template;
-                    var /** @type {?} */ interpolationConfig = InterpolationConfig.fromArray(compMeta.template.interpolation);
-                    errors.push.apply(errors, _this.messageBundle.updateFromTemplate(html, file.srcUrl, interpolationConfig));
+                compMetas.forEach(compMeta => {
+                    const /** @type {?} */ html = compMeta.template.template;
+                    const /** @type {?} */ interpolationConfig = InterpolationConfig.fromArray(compMeta.template.interpolation);
+                    errors.push(...this.messageBundle.updateFromTemplate(html, file.srcUrl, interpolationConfig));
                 });
             });
             if (errors.length) {
-                throw new Error(errors.map(function (e) { return e.toString(); }).join('\n'));
+                throw new Error(errors.map(e => e.toString()).join('\n'));
             }
-            return _this.messageBundle;
+            return this.messageBundle;
         });
-    };
+    }
     /**
      * @param {?} host
      * @param {?} options
      * @return {?}
      */
-    Extractor.create = function (host, options) {
-        var /** @type {?} */ htmlParser = new I18NHtmlParser(new HtmlParser());
-        var /** @type {?} */ urlResolver = createOfflineCompileUrlResolver();
-        var /** @type {?} */ staticReflector = new StaticReflector(host);
+    static create(host, options) {
+        const /** @type {?} */ htmlParser = new I18NHtmlParser(new HtmlParser());
+        const /** @type {?} */ urlResolver = createOfflineCompileUrlResolver();
+        const /** @type {?} */ staticReflector = new StaticReflector(host);
         StaticAndDynamicReflectionCapabilities.install(staticReflector);
-        var /** @type {?} */ config = new CompilerConfig({
+        const /** @type {?} */ config = new CompilerConfig({
             genDebugInfo: false,
             defaultEncapsulation: ViewEncapsulation.Emulated,
             logBindingUpdate: false,
             useJit: false
         });
-        var /** @type {?} */ normalizer = new DirectiveNormalizer({ get: function (url) { return host.loadResource(url); } }, urlResolver, htmlParser, config);
-        var /** @type {?} */ elementSchemaRegistry = new DomElementSchemaRegistry();
-        var /** @type {?} */ resolver = new CompileMetadataResolver(new NgModuleResolver(staticReflector), new DirectiveResolver(staticReflector), new PipeResolver(staticReflector), new AotSummaryResolver(host, staticReflector, options), elementSchemaRegistry, normalizer, staticReflector);
+        const /** @type {?} */ normalizer = new DirectiveNormalizer({ get: (url) => host.loadResource(url) }, urlResolver, htmlParser, config);
+        const /** @type {?} */ elementSchemaRegistry = new DomElementSchemaRegistry();
+        const /** @type {?} */ resolver = new CompileMetadataResolver(new NgModuleResolver(staticReflector), new DirectiveResolver(staticReflector), new PipeResolver(staticReflector), new AotSummaryResolver(host, staticReflector, options), elementSchemaRegistry, normalizer, staticReflector);
         // TODO(vicb): implicit tags & attributes
-        var /** @type {?} */ messageBundle = new MessageBundle(htmlParser, [], {});
-        var /** @type {?} */ extractor = new Extractor(options, host, staticReflector, messageBundle, resolver);
-        return { extractor: extractor, staticReflector: staticReflector };
-    };
-    return Extractor;
-}());
+        const /** @type {?} */ messageBundle = new MessageBundle(htmlParser, [], {});
+        const /** @type {?} */ extractor = new Extractor(options, host, staticReflector, messageBundle, resolver);
+        return { extractor, staticReflector };
+    }
+}
 function Extractor_tsickle_Closure_declarations() {
     /** @type {?} */
     Extractor.prototype.options;

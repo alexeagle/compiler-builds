@@ -10,124 +10,122 @@ import { ListWrapper, StringMapWrapper } from './facade/collection';
 import { stringify } from './facade/lang';
 import { ReflectorReader, reflector } from './private_import_core';
 import { splitAtColon } from './util';
-export var DirectiveResolver = (function () {
+export class DirectiveResolver {
     /**
      * @param {?=} _reflector
      */
-    function DirectiveResolver(_reflector) {
-        if (_reflector === void 0) { _reflector = reflector; }
+    constructor(_reflector = reflector) {
         this._reflector = _reflector;
     }
     /**
      * @param {?} type
      * @return {?}
      */
-    DirectiveResolver.prototype.isDirective = function (type) {
-        var /** @type {?} */ typeMetadata = this._reflector.annotations(resolveForwardRef(type));
+    isDirective(type) {
+        const /** @type {?} */ typeMetadata = this._reflector.annotations(resolveForwardRef(type));
         return typeMetadata && typeMetadata.some(isDirectiveMetadata);
-    };
+    }
     /**
      * Return {\@link Directive} for a given `Type`.
      * @param {?} type
      * @param {?=} throwIfNotFound
      * @return {?}
      */
-    DirectiveResolver.prototype.resolve = function (type, throwIfNotFound) {
-        if (throwIfNotFound === void 0) { throwIfNotFound = true; }
-        var /** @type {?} */ typeMetadata = this._reflector.annotations(resolveForwardRef(type));
+    resolve(type, throwIfNotFound = true) {
+        const /** @type {?} */ typeMetadata = this._reflector.annotations(resolveForwardRef(type));
         if (typeMetadata) {
-            var /** @type {?} */ metadata = ListWrapper.findLast(typeMetadata, isDirectiveMetadata);
+            const /** @type {?} */ metadata = ListWrapper.findLast(typeMetadata, isDirectiveMetadata);
             if (metadata) {
-                var /** @type {?} */ propertyMetadata = this._reflector.propMetadata(type);
+                const /** @type {?} */ propertyMetadata = this._reflector.propMetadata(type);
                 return this._mergeWithPropertyMetadata(metadata, propertyMetadata, type);
             }
         }
         if (throwIfNotFound) {
-            throw new Error("No Directive annotation found on " + stringify(type));
+            throw new Error(`No Directive annotation found on ${stringify(type)}`);
         }
         return null;
-    };
+    }
     /**
      * @param {?} dm
      * @param {?} propertyMetadata
      * @param {?} directiveType
      * @return {?}
      */
-    DirectiveResolver.prototype._mergeWithPropertyMetadata = function (dm, propertyMetadata, directiveType) {
-        var /** @type {?} */ inputs = [];
-        var /** @type {?} */ outputs = [];
-        var /** @type {?} */ host = {};
-        var /** @type {?} */ queries = {};
-        Object.keys(propertyMetadata).forEach(function (propName) {
-            var /** @type {?} */ input = ListWrapper.findLast(propertyMetadata[propName], function (a) { return a instanceof Input; });
+    _mergeWithPropertyMetadata(dm, propertyMetadata, directiveType) {
+        const /** @type {?} */ inputs = [];
+        const /** @type {?} */ outputs = [];
+        const /** @type {?} */ host = {};
+        const /** @type {?} */ queries = {};
+        Object.keys(propertyMetadata).forEach((propName) => {
+            const /** @type {?} */ input = ListWrapper.findLast(propertyMetadata[propName], (a) => a instanceof Input);
             if (input) {
                 if (input.bindingPropertyName) {
-                    inputs.push(propName + ": " + input.bindingPropertyName);
+                    inputs.push(`${propName}: ${input.bindingPropertyName}`);
                 }
                 else {
                     inputs.push(propName);
                 }
             }
-            var /** @type {?} */ output = ListWrapper.findLast(propertyMetadata[propName], function (a) { return a instanceof Output; });
+            const /** @type {?} */ output = ListWrapper.findLast(propertyMetadata[propName], (a) => a instanceof Output);
             if (output) {
                 if (output.bindingPropertyName) {
-                    outputs.push(propName + ": " + output.bindingPropertyName);
+                    outputs.push(`${propName}: ${output.bindingPropertyName}`);
                 }
                 else {
                     outputs.push(propName);
                 }
             }
-            var /** @type {?} */ hostBinding = ListWrapper.findLast(propertyMetadata[propName], function (a) { return a instanceof HostBinding; });
+            const /** @type {?} */ hostBinding = ListWrapper.findLast(propertyMetadata[propName], (a) => a instanceof HostBinding);
             if (hostBinding) {
                 if (hostBinding.hostPropertyName) {
-                    var /** @type {?} */ startWith = hostBinding.hostPropertyName[0];
+                    const /** @type {?} */ startWith = hostBinding.hostPropertyName[0];
                     if (startWith === '(') {
-                        throw new Error("@HostBinding can not bind to events. Use @HostListener instead.");
+                        throw new Error(`@HostBinding can not bind to events. Use @HostListener instead.`);
                     }
                     else if (startWith === '[') {
-                        throw new Error("@HostBinding parameter should be a property name, 'class.<name>', or 'attr.<name>'.");
+                        throw new Error(`@HostBinding parameter should be a property name, 'class.<name>', or 'attr.<name>'.`);
                     }
-                    host[("[" + hostBinding.hostPropertyName + "]")] = propName;
+                    host[`[${hostBinding.hostPropertyName}]`] = propName;
                 }
                 else {
-                    host[("[" + propName + "]")] = propName;
+                    host[`[${propName}]`] = propName;
                 }
             }
-            var /** @type {?} */ hostListener = ListWrapper.findLast(propertyMetadata[propName], function (a) { return a instanceof HostListener; });
+            const /** @type {?} */ hostListener = ListWrapper.findLast(propertyMetadata[propName], (a) => a instanceof HostListener);
             if (hostListener) {
-                var /** @type {?} */ args = hostListener.args || [];
-                host[("(" + hostListener.eventName + ")")] = propName + "(" + args.join(',') + ")";
+                const /** @type {?} */ args = hostListener.args || [];
+                host[`(${hostListener.eventName})`] = `${propName}(${args.join(',')})`;
             }
-            var /** @type {?} */ query = ListWrapper.findLast(propertyMetadata[propName], function (a) { return a instanceof Query; });
+            const /** @type {?} */ query = ListWrapper.findLast(propertyMetadata[propName], (a) => a instanceof Query);
             if (query) {
                 queries[propName] = query;
             }
         });
         return this._merge(dm, inputs, outputs, host, queries, directiveType);
-    };
+    }
     /**
      * @param {?} def
      * @return {?}
      */
-    DirectiveResolver.prototype._extractPublicName = function (def) { return splitAtColon(def, [null, def])[1].trim(); };
+    _extractPublicName(def) { return splitAtColon(def, [null, def])[1].trim(); }
     /**
      * @param {?} bindings
      * @return {?}
      */
-    DirectiveResolver.prototype._dedupeBindings = function (bindings) {
-        var /** @type {?} */ names = new Set();
-        var /** @type {?} */ reversedResult = [];
+    _dedupeBindings(bindings) {
+        const /** @type {?} */ names = new Set();
+        const /** @type {?} */ reversedResult = [];
         // go last to first to allow later entries to overwrite previous entries
-        for (var /** @type {?} */ i = bindings.length - 1; i >= 0; i--) {
-            var /** @type {?} */ binding = bindings[i];
-            var /** @type {?} */ name_1 = this._extractPublicName(binding);
-            if (!names.has(name_1)) {
-                names.add(name_1);
+        for (let /** @type {?} */ i = bindings.length - 1; i >= 0; i--) {
+            const /** @type {?} */ binding = bindings[i];
+            const /** @type {?} */ name = this._extractPublicName(binding);
+            if (!names.has(name)) {
+                names.add(name);
                 reversedResult.push(binding);
             }
         }
         return reversedResult.reverse();
-    };
+    }
     /**
      * @param {?} directive
      * @param {?} inputs
@@ -137,11 +135,11 @@ export var DirectiveResolver = (function () {
      * @param {?} directiveType
      * @return {?}
      */
-    DirectiveResolver.prototype._merge = function (directive, inputs, outputs, host, queries, directiveType) {
-        var /** @type {?} */ mergedInputs = this._dedupeBindings(directive.inputs ? directive.inputs.concat(inputs) : inputs);
-        var /** @type {?} */ mergedOutputs = this._dedupeBindings(directive.outputs ? directive.outputs.concat(outputs) : outputs);
-        var /** @type {?} */ mergedHost = directive.host ? StringMapWrapper.merge(directive.host, host) : host;
-        var /** @type {?} */ mergedQueries = directive.queries ? StringMapWrapper.merge(directive.queries, queries) : queries;
+    _merge(directive, inputs, outputs, host, queries, directiveType) {
+        const /** @type {?} */ mergedInputs = this._dedupeBindings(directive.inputs ? directive.inputs.concat(inputs) : inputs);
+        const /** @type {?} */ mergedOutputs = this._dedupeBindings(directive.outputs ? directive.outputs.concat(outputs) : outputs);
+        const /** @type {?} */ mergedHost = directive.host ? StringMapWrapper.merge(directive.host, host) : host;
+        const /** @type {?} */ mergedQueries = directive.queries ? StringMapWrapper.merge(directive.queries, queries) : queries;
         if (directive instanceof Component) {
             return new Component({
                 selector: directive.selector,
@@ -175,16 +173,15 @@ export var DirectiveResolver = (function () {
                 providers: directive.providers
             });
         }
-    };
-    DirectiveResolver.decorators = [
-        { type: Injectable },
-    ];
-    /** @nocollapse */
-    DirectiveResolver.ctorParameters = function () { return [
-        { type: ReflectorReader, },
-    ]; };
-    return DirectiveResolver;
-}());
+    }
+}
+DirectiveResolver.decorators = [
+    { type: Injectable },
+];
+/** @nocollapse */
+DirectiveResolver.ctorParameters = () => [
+    { type: ReflectorReader, },
+];
 function DirectiveResolver_tsickle_Closure_declarations() {
     /** @type {?} */
     DirectiveResolver.decorators;

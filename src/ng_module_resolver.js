@@ -19,46 +19,43 @@ function _isNgModuleMetadata(obj) {
 /**
  * Resolves types to {\@link NgModule}.
  */
-export var NgModuleResolver = (function () {
+export class NgModuleResolver {
     /**
      * @param {?=} _reflector
      */
-    function NgModuleResolver(_reflector) {
-        if (_reflector === void 0) { _reflector = reflector; }
+    constructor(_reflector = reflector) {
         this._reflector = _reflector;
     }
     /**
      * @param {?} type
      * @return {?}
      */
-    NgModuleResolver.prototype.isNgModule = function (type) { return this._reflector.annotations(type).some(_isNgModuleMetadata); };
+    isNgModule(type) { return this._reflector.annotations(type).some(_isNgModuleMetadata); }
     /**
      * @param {?} type
      * @param {?=} throwIfNotFound
      * @return {?}
      */
-    NgModuleResolver.prototype.resolve = function (type, throwIfNotFound) {
-        if (throwIfNotFound === void 0) { throwIfNotFound = true; }
-        var /** @type {?} */ ngModuleMeta = ListWrapper.findLast(this._reflector.annotations(type), _isNgModuleMetadata);
+    resolve(type, throwIfNotFound = true) {
+        const /** @type {?} */ ngModuleMeta = ListWrapper.findLast(this._reflector.annotations(type), _isNgModuleMetadata);
         if (isPresent(ngModuleMeta)) {
             return ngModuleMeta;
         }
         else {
             if (throwIfNotFound) {
-                throw new Error("No NgModule metadata found for '" + stringify(type) + "'.");
+                throw new Error(`No NgModule metadata found for '${stringify(type)}'.`);
             }
             return null;
         }
-    };
-    NgModuleResolver.decorators = [
-        { type: Injectable },
-    ];
-    /** @nocollapse */
-    NgModuleResolver.ctorParameters = function () { return [
-        { type: ReflectorReader, },
-    ]; };
-    return NgModuleResolver;
-}());
+    }
+}
+NgModuleResolver.decorators = [
+    { type: Injectable },
+];
+/** @nocollapse */
+NgModuleResolver.ctorParameters = () => [
+    { type: ReflectorReader, },
+];
 function NgModuleResolver_tsickle_Closure_declarations() {
     /** @type {?} */
     NgModuleResolver.decorators;

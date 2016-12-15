@@ -2,9 +2,7 @@
  * Interface that defines how import statements should be generated.
  * @abstract
  */
-export var ImportResolver = (function () {
-    function ImportResolver() {
-    }
+export class ImportResolver {
     /**
      * Converts a file path to a module name that can be used as an `import.
      * I.e. `path/to/importedFile.ts` should be imported by `path/to/containingFile.ts`.
@@ -13,7 +11,6 @@ export var ImportResolver = (function () {
      * @param {?} containingFilePath
      * @return {?}
      */
-    ImportResolver.prototype.fileNameToModuleName = function (importedFilePath, containingFilePath) { };
-    return ImportResolver;
-}());
+    fileNameToModuleName(importedFilePath, containingFilePath) { }
+}
 //# sourceMappingURL=path_util.js.map

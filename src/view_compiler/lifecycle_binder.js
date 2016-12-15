@@ -10,8 +10,8 @@ import * as o from '../output/output_ast';
 import { LifecycleHooks } from '../private_import_core';
 import { ProviderAstType } from '../template_parser/template_ast';
 import { DetectChangesVars } from './constants';
-var /** @type {?} */ STATE_IS_NEVER_CHECKED = o.THIS_EXPR.prop('numberOfChecks').identical(new o.LiteralExpr(0));
-var /** @type {?} */ NOT_THROW_ON_CHANGES = o.not(DetectChangesVars.throwOnChange);
+const /** @type {?} */ STATE_IS_NEVER_CHECKED = o.THIS_EXPR.prop('numberOfChecks').identical(new o.LiteralExpr(0));
+const /** @type {?} */ NOT_THROW_ON_CHANGES = o.not(DetectChangesVars.throwOnChange);
 /**
  * @param {?} directiveMeta
  * @param {?} directiveInstance
@@ -19,9 +19,9 @@ var /** @type {?} */ NOT_THROW_ON_CHANGES = o.not(DetectChangesVars.throwOnChang
  * @return {?}
  */
 export function bindDirectiveAfterContentLifecycleCallbacks(directiveMeta, directiveInstance, compileElement) {
-    var /** @type {?} */ view = compileElement.view;
-    var /** @type {?} */ lifecycleHooks = directiveMeta.type.lifecycleHooks;
-    var /** @type {?} */ afterContentLifecycleCallbacksMethod = view.afterContentLifecycleCallbacksMethod;
+    const /** @type {?} */ view = compileElement.view;
+    const /** @type {?} */ lifecycleHooks = directiveMeta.type.lifecycleHooks;
+    const /** @type {?} */ afterContentLifecycleCallbacksMethod = view.afterContentLifecycleCallbacksMethod;
     afterContentLifecycleCallbacksMethod.resetDebugInfo(compileElement.nodeIndex, compileElement.sourceAst);
     if (lifecycleHooks.indexOf(LifecycleHooks.AfterContentInit) !== -1) {
         afterContentLifecycleCallbacksMethod.addStmt(new o.IfStmt(STATE_IS_NEVER_CHECKED, [directiveInstance.callMethod('ngAfterContentInit', []).toStmt()]));
@@ -37,9 +37,9 @@ export function bindDirectiveAfterContentLifecycleCallbacks(directiveMeta, direc
  * @return {?}
  */
 export function bindDirectiveAfterViewLifecycleCallbacks(directiveMeta, directiveInstance, compileElement) {
-    var /** @type {?} */ view = compileElement.view;
-    var /** @type {?} */ lifecycleHooks = directiveMeta.type.lifecycleHooks;
-    var /** @type {?} */ afterViewLifecycleCallbacksMethod = view.afterViewLifecycleCallbacksMethod;
+    const /** @type {?} */ view = compileElement.view;
+    const /** @type {?} */ lifecycleHooks = directiveMeta.type.lifecycleHooks;
+    const /** @type {?} */ afterViewLifecycleCallbacksMethod = view.afterViewLifecycleCallbacksMethod;
     afterViewLifecycleCallbacksMethod.resetDebugInfo(compileElement.nodeIndex, compileElement.sourceAst);
     if (lifecycleHooks.indexOf(LifecycleHooks.AfterViewInit) !== -1) {
         afterViewLifecycleCallbacksMethod.addStmt(new o.IfStmt(STATE_IS_NEVER_CHECKED, [directiveInstance.callMethod('ngAfterViewInit', []).toStmt()]));
@@ -65,7 +65,7 @@ export function bindDirectiveWrapperLifecycleCallbacks(dir, directiveWrapperInta
  * @return {?}
  */
 export function bindInjectableDestroyLifecycleCallbacks(provider, providerInstance, compileElement) {
-    var /** @type {?} */ onDestroyMethod = compileElement.view.destroyMethod;
+    const /** @type {?} */ onDestroyMethod = compileElement.view.destroyMethod;
     onDestroyMethod.resetDebugInfo(compileElement.nodeIndex, compileElement.sourceAst);
     if (provider.providerType !== ProviderAstType.Directive &&
         provider.providerType !== ProviderAstType.Component &&
@@ -80,7 +80,7 @@ export function bindInjectableDestroyLifecycleCallbacks(provider, providerInstan
  * @return {?}
  */
 export function bindPipeDestroyLifecycleCallbacks(pipeMeta, pipeInstance, view) {
-    var /** @type {?} */ onDestroyMethod = view.destroyMethod;
+    const /** @type {?} */ onDestroyMethod = view.destroyMethod;
     if (pipeMeta.type.lifecycleHooks.indexOf(LifecycleHooks.OnDestroy) !== -1) {
         onDestroyMethod.addStmt(pipeInstance.callMethod('ngOnDestroy', []).toStmt());
     }

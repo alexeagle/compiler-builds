@@ -8,9 +8,8 @@
  * @param {?=} options
  * @return {?}
  */
-export function filterFileByPatterns(fileName, options) {
-    if (options === void 0) { options = {}; }
-    var /** @type {?} */ match = true;
+export function filterFileByPatterns(fileName, options = {}) {
+    let /** @type {?} */ match = true;
     if (options.includeFilePattern) {
         match = match && !!options.includeFilePattern.exec(fileName);
     }

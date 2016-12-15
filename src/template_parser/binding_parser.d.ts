@@ -27,8 +27,8 @@ export declare class BoundProperty {
     type: BoundPropertyType;
     sourceSpan: ParseSourceSpan;
     constructor(name: string, expression: ASTWithSource, type: BoundPropertyType, sourceSpan: ParseSourceSpan);
-    isLiteral: boolean;
-    isAnimation: boolean;
+    readonly isLiteral: boolean;
+    readonly isAnimation: boolean;
 }
 /**
  * Parses bindings in templates and in the directive host area.
@@ -68,7 +68,7 @@ export declare class BindingParser {
     private _validatePropertyOrAttributeName(propName, sourceSpan, isAttr);
 }
 export declare class PipeCollector extends RecursiveAstVisitor {
-    pipes: Set<string>;
+    pipes: Map<string, BindingPipe>;
     visitPipe(ast: BindingPipe, context: any): any;
 }
 export declare function calcPossibleSecurityContexts(registry: ElementSchemaRegistry, selector: string, propName: string, isAttribute: boolean): SecurityContext[];

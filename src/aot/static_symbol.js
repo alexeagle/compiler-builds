@@ -3,19 +3,18 @@
  *
  * This token is unique for a filePath and name and can be used as a hash table key.
  */
-export var StaticSymbol = (function () {
+export class StaticSymbol {
     /**
      * @param {?} filePath
      * @param {?} name
      * @param {?=} members
      */
-    function StaticSymbol(filePath, name, members) {
+    constructor(filePath, name, members) {
         this.filePath = filePath;
         this.name = name;
         this.members = members;
     }
-    return StaticSymbol;
-}());
+}
 function StaticSymbol_tsickle_Closure_declarations() {
     /** @type {?} */
     StaticSymbol.prototype.filePath;
