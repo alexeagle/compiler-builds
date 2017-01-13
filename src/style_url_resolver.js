@@ -5,7 +5,6 @@
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.io/license
  */
-import { isBlank } from './facade/lang';
 export class StyleWithImports {
     /**
      * @param {?} style
@@ -27,9 +26,9 @@ function StyleWithImports_tsickle_Closure_declarations() {
  * @return {?}
  */
 export function isStyleUrlResolvable(url) {
-    if (isBlank(url) || url.length === 0 || url[0] == '/')
+    if (url == null || url.length === 0 || url[0] == '/')
         return false;
-    const /** @type {?} */ schemeMatch = url.match(_urlWithSchemaRe);
+    const /** @type {?} */ schemeMatch = url.match(URL_WITH_SCHEMA_REGEXP);
     return schemeMatch === null || schemeMatch[1] == 'package' || schemeMatch[1] == 'asset';
 }
 /**
@@ -42,7 +41,7 @@ export function isStyleUrlResolvable(url) {
  */
 export function extractStyleUrls(resolver, baseUrl, cssText) {
     const /** @type {?} */ foundUrls = [];
-    const /** @type {?} */ modifiedCssText = cssText.replace(_cssImportRe, function (...m) {
+    const /** @type {?} */ modifiedCssText = cssText.replace(CSS_COMMENT_REGEXP, '').replace(CSS_IMPORT_REGEXP, (...m) => {
         const /** @type {?} */ url = m[1] || m[2];
         if (!isStyleUrlResolvable(url)) {
             // Do not attempt to resolve non-package absolute URLs with URI scheme
@@ -53,6 +52,7 @@ export function extractStyleUrls(resolver, baseUrl, cssText) {
     });
     return new StyleWithImports(modifiedCssText, foundUrls);
 }
-const /** @type {?} */ _cssImportRe = /@import\s+(?:url\()?\s*(?:(?:['"]([^'"]*))|([^;\)\s]*))[^;]*;?/g;
-const /** @type {?} */ _urlWithSchemaRe = /^([^:/?#]+):/;
+const /** @type {?} */ CSS_IMPORT_REGEXP = /@import\s+(?:url\()?\s*(?:(?:['"]([^'"]*))|([^;\)\s]*))[^;]*;?/g;
+const /** @type {?} */ CSS_COMMENT_REGEXP = /\/\*.+?\*\//g;
+const /** @type {?} */ URL_WITH_SCHEMA_REGEXP = /^([^:/?#]+):/;
 //# sourceMappingURL=style_url_resolver.js.map

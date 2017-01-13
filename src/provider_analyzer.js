@@ -38,9 +38,15 @@ export class ProviderViewContext {
     }
 }
 function ProviderViewContext_tsickle_Closure_declarations() {
-    /** @type {?} */
+    /**
+     * \@internal
+     * @type {?}
+     */
     ProviderViewContext.prototype.viewQueries;
-    /** @type {?} */
+    /**
+     * \@internal
+     * @type {?}
+     */
     ProviderViewContext.prototype.viewProviders;
     /** @type {?} */
     ProviderViewContext.prototype.errors;
@@ -143,7 +149,7 @@ export class ProviderElementContext {
         let /** @type {?} */ queries;
         while (currentEl !== null) {
             queries = currentEl._contentQueries.get(tokenReference(token));
-            if (isPresent(queries)) {
+            if (queries) {
                 result.push(...queries.filter((query) => query.descendants || distance <= 1));
             }
             if (currentEl._directiveAsts.length > 0) {
@@ -152,7 +158,7 @@ export class ProviderElementContext {
             currentEl = currentEl._parent;
         }
         queries = this.viewContext.viewQueries.get(tokenReference(token));
-        if (isPresent(queries)) {
+        if (queries) {
             result.push(...queries);
         }
         return result;
@@ -174,7 +180,7 @@ export class ProviderElementContext {
             return null;
         }
         let /** @type {?} */ transformedProviderAst = this._transformedProviders.get(tokenReference(token));
-        if (isPresent(transformedProviderAst)) {
+        if (transformedProviderAst) {
             return transformedProviderAst;
         }
         if (isPresent(this._seenProviders.get(tokenReference(token)))) {
@@ -196,12 +202,12 @@ export class ProviderElementContext {
                     transformedUseValue = existingDiDep.value;
                 }
             }
-            else if (isPresent(provider.useFactory)) {
+            else if (provider.useFactory) {
                 const /** @type {?} */ deps = provider.deps || provider.useFactory.diDeps;
                 transformedDeps =
                     deps.map((dep) => this._getDependency(resolvedProvider.providerType, dep, eager));
             }
-            else if (isPresent(provider.useClass)) {
+            else if (provider.useClass) {
                 const /** @type {?} */ deps = provider.deps || provider.useClass.diDeps;
                 transformedDeps =
                     deps.map((dep) => this._getDependency(resolvedProvider.providerType, dep, eager));
@@ -273,7 +279,7 @@ export class ProviderElementContext {
         }
         else {
             // check parent elements
-            while (!result && isPresent(currElement._parent)) {
+            while (!result && currElement._parent) {
                 const /** @type {?} */ prevElement = currElement;
                 currElement = currElement._parent;
                 if (prevElement._isViewRoot) {
@@ -364,7 +370,7 @@ export class NgModuleProviderAnalyzer {
             return null;
         }
         let /** @type {?} */ transformedProviderAst = this._transformedProviders.get(tokenReference(token));
-        if (isPresent(transformedProviderAst)) {
+        if (transformedProviderAst) {
             return transformedProviderAst;
         }
         if (isPresent(this._seenProviders.get(tokenReference(token)))) {
@@ -386,12 +392,12 @@ export class NgModuleProviderAnalyzer {
                     transformedUseValue = existingDiDep.value;
                 }
             }
-            else if (isPresent(provider.useFactory)) {
+            else if (provider.useFactory) {
                 const /** @type {?} */ deps = provider.deps || provider.useFactory.diDeps;
                 transformedDeps =
                     deps.map((dep) => this._getDependency(dep, eager, resolvedProvider.sourceSpan));
             }
-            else if (isPresent(provider.useClass)) {
+            else if (provider.useClass) {
                 const /** @type {?} */ deps = provider.deps || provider.useClass.diDeps;
                 transformedDeps =
                     deps.map((dep) => this._getDependency(dep, eager, resolvedProvider.sourceSpan));
@@ -528,7 +534,7 @@ function _resolveProviders(providers, providerType, eager, sourceSpan, targetErr
  */
 function _getViewQueries(component) {
     const /** @type {?} */ viewQueries = new Map();
-    if (isPresent(component.viewQueries)) {
+    if (component.viewQueries) {
         component.viewQueries.forEach((query) => _addQueryToTokenMap(viewQueries, query));
     }
     return viewQueries;
@@ -540,7 +546,7 @@ function _getViewQueries(component) {
 function _getContentQueries(directives) {
     const /** @type {?} */ contentQueries = new Map();
     directives.forEach(directive => {
-        if (isPresent(directive.queries)) {
+        if (directive.queries) {
             directive.queries.forEach((query) => _addQueryToTokenMap(contentQueries, query));
         }
     });

@@ -5,9 +5,19 @@
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.io/license
  */
-import { Injectable, Pipe, resolveForwardRef } from '@angular/core/index';
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+import { Pipe, resolveForwardRef } from '@angular/core/index';
 import { ListWrapper } from './facade/collection';
-import { isPresent, stringify } from './facade/lang';
+import { stringify } from './facade/lang';
+import { CompilerInjectable } from './injectable';
 import { ReflectorReader, reflector } from './private_import_core';
 /**
  * @param {?} type
@@ -23,7 +33,7 @@ function _isPipeMetadata(type) {
  *
  * See {\@link Compiler}
  */
-export class PipeResolver {
+export let PipeResolver = class PipeResolver {
     /**
      * @param {?=} _reflector
      */
@@ -46,9 +56,9 @@ export class PipeResolver {
      */
     resolve(type, throwIfNotFound = true) {
         const /** @type {?} */ metas = this._reflector.annotations(resolveForwardRef(type));
-        if (isPresent(metas)) {
+        if (metas) {
             const /** @type {?} */ annotation = ListWrapper.findLast(metas, _isPipeMetadata);
-            if (isPresent(annotation)) {
+            if (annotation) {
                 return annotation;
             }
         }
@@ -57,23 +67,14 @@ export class PipeResolver {
         }
         return null;
     }
-}
-PipeResolver.decorators = [
-    { type: Injectable },
-];
-/** @nocollapse */
-PipeResolver.ctorParameters = () => [
-    { type: ReflectorReader, },
-];
+};
+PipeResolver = __decorate([
+    CompilerInjectable(), 
+    __metadata('design:paramtypes', [(typeof (_a = typeof ReflectorReader !== 'undefined' && ReflectorReader) === 'function' && _a) || Object])
+], PipeResolver);
 function PipeResolver_tsickle_Closure_declarations() {
-    /** @type {?} */
-    PipeResolver.decorators;
-    /**
-     * @nocollapse
-     * @type {?}
-     */
-    PipeResolver.ctorParameters;
     /** @type {?} */
     PipeResolver.prototype._reflector;
 }
+var _a;
 //# sourceMappingURL=pipe_resolver.js.map

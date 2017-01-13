@@ -5,14 +5,23 @@
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.io/license
  */
-import { Injectable } from '@angular/core/index';
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
 import { CompileAnimationAnimateMetadata, CompileAnimationGroupMetadata, CompileAnimationKeyframesSequenceMetadata, CompileAnimationSequenceMetadata, CompileAnimationStateDeclarationMetadata, CompileAnimationStyleMetadata, CompileAnimationWithStepsMetadata, identifierName } from '../compile_metadata';
 import { StringMapWrapper } from '../facade/collection';
 import { isBlank, isPresent } from '../facade/lang';
+import { CompilerInjectable } from '../injectable';
 import { ParseError } from '../parse_util';
 import { ANY_STATE, FILL_STYLE_FLAG } from '../private_import_core';
 import { ElementSchemaRegistry } from '../schema/element_schema_registry';
-import { AnimationEntryAst, AnimationGroupAst, AnimationKeyframeAst, AnimationSequenceAst, AnimationStateDeclarationAst, AnimationStateTransitionAst, AnimationStateTransitionExpression, AnimationStepAst, AnimationStylesAst, AnimationWithStepsAst } from './animation_ast';
+import { AnimationEntryAst, AnimationGroupAst, AnimationKeyframeAst, AnimationSequenceAst, AnimationStateDeclarationAst, AnimationStateTransitionAst, AnimationStateTransitionExpression, AnimationStateTransitionFnExpression, AnimationStepAst, AnimationStylesAst, AnimationWithStepsAst } from './animation_ast';
 import { StylesCollection } from './styles_collection';
 const /** @type {?} */ _INITIAL_KEYFRAME = 0;
 const /** @type {?} */ _TERMINAL_KEYFRAME = 1;
@@ -45,7 +54,7 @@ function AnimationEntryParseResult_tsickle_Closure_declarations() {
     /** @type {?} */
     AnimationEntryParseResult.prototype.errors;
 }
-export class AnimationParser {
+export let AnimationParser = class AnimationParser {
     /**
      * @param {?} _schema
      */
@@ -107,22 +116,12 @@ export class AnimationParser {
         const /** @type {?} */ ast = new AnimationEntryAst(entry.name, stateDeclarationAsts, stateTransitionAsts);
         return new AnimationEntryParseResult(ast, errors);
     }
-}
-AnimationParser.decorators = [
-    { type: Injectable },
-];
-/** @nocollapse */
-AnimationParser.ctorParameters = () => [
-    { type: ElementSchemaRegistry, },
-];
+};
+AnimationParser = __decorate([
+    CompilerInjectable(), 
+    __metadata('design:paramtypes', [ElementSchemaRegistry])
+], AnimationParser);
 function AnimationParser_tsickle_Closure_declarations() {
-    /** @type {?} */
-    AnimationParser.decorators;
-    /**
-     * @nocollapse
-     * @type {?}
-     */
-    AnimationParser.ctorParameters;
     /** @type {?} */
     AnimationParser.prototype._schema;
 }
@@ -148,8 +147,11 @@ function _parseAnimationDeclarationStates(stateMetadata, schema, errors) {
 function _parseAnimationStateTransition(transitionStateMetadata, stateStyles, schema, errors) {
     const /** @type {?} */ styles = new StylesCollection();
     const /** @type {?} */ transitionExprs = [];
-    const /** @type {?} */ transitionStates = transitionStateMetadata.stateChangeExpr.split(/\s*,\s*/);
-    transitionStates.forEach(expr => { transitionExprs.push(..._parseAnimationTransitionExpr(expr, errors)); });
+    const /** @type {?} */ stateChangeExpr = transitionStateMetadata.stateChangeExpr;
+    const /** @type {?} */ transitionStates = typeof stateChangeExpr == 'string' ?
+        ((stateChangeExpr)).split(/\s*,\s*/) :
+        [(stateChangeExpr)];
+    transitionStates.forEach(expr => transitionExprs.push(..._parseAnimationTransitionExpr(expr, errors)));
     const /** @type {?} */ entry = _normalizeAnimationEntry(transitionStateMetadata.steps);
     const /** @type {?} */ animation = _normalizeStyleSteps(entry, stateStyles, schema, errors);
     const /** @type {?} */ animationAst = _parseTransitionAnimation(animation, 0, styles, stateStyles, errors);
@@ -178,27 +180,33 @@ function _parseAnimationAlias(alias, errors) {
     }
 }
 /**
- * @param {?} eventStr
+ * @param {?} transitionValue
  * @param {?} errors
  * @return {?}
  */
-function _parseAnimationTransitionExpr(eventStr, errors) {
+function _parseAnimationTransitionExpr(transitionValue, errors) {
     const /** @type {?} */ expressions = [];
-    if (eventStr[0] == ':') {
-        eventStr = _parseAnimationAlias(eventStr, errors);
+    if (typeof transitionValue == 'string') {
+        let /** @type {?} */ eventStr = (transitionValue);
+        if (eventStr[0] == ':') {
+            eventStr = _parseAnimationAlias(eventStr, errors);
+        }
+        const /** @type {?} */ match = eventStr.match(/^(\*|[-\w]+)\s*(<?[=-]>)\s*(\*|[-\w]+)$/);
+        if (!isPresent(match) || match.length < 4) {
+            errors.push(new AnimationParseError(`the provided ${eventStr} is not of a supported format`));
+            return expressions;
+        }
+        const /** @type {?} */ fromState = match[1];
+        const /** @type {?} */ separator = match[2];
+        const /** @type {?} */ toState = match[3];
+        expressions.push(new AnimationStateTransitionExpression(fromState, toState));
+        const /** @type {?} */ isFullAnyStateExpr = fromState == ANY_STATE && toState == ANY_STATE;
+        if (separator[0] == '<' && !isFullAnyStateExpr) {
+            expressions.push(new AnimationStateTransitionExpression(toState, fromState));
+        }
     }
-    const /** @type {?} */ match = eventStr.match(/^(\*|[-\w]+)\s*(<?[=-]>)\s*(\*|[-\w]+)$/);
-    if (!isPresent(match) || match.length < 4) {
-        errors.push(new AnimationParseError(`the provided ${eventStr} is not of a supported format`));
-        return expressions;
-    }
-    const /** @type {?} */ fromState = match[1];
-    const /** @type {?} */ separator = match[2];
-    const /** @type {?} */ toState = match[3];
-    expressions.push(new AnimationStateTransitionExpression(fromState, toState));
-    const /** @type {?} */ isFullAnyStateExpr = fromState == ANY_STATE && toState == ANY_STATE;
-    if (separator[0] == '<' && !isFullAnyStateExpr) {
-        expressions.push(new AnimationStateTransitionExpression(toState, fromState));
+    else {
+        expressions.push(new AnimationStateTransitionFnExpression(/** @type {?} */ (transitionValue)));
     }
     return expressions;
 }

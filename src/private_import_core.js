@@ -23,7 +23,6 @@ export const /** @type {?} */ view_utils = r.view_utils;
 export const /** @type {?} */ DebugContext = r.DebugContext;
 export const /** @type {?} */ StaticNodeDebugInfo = r.StaticNodeDebugInfo;
 export const /** @type {?} */ devModeEqual = r.devModeEqual;
-export const /** @type {?} */ UNINITIALIZED = r.UNINITIALIZED;
 export const /** @type {?} */ ValueUnwrapper = r.ValueUnwrapper;
 export const /** @type {?} */ TemplateRef_ = r.TemplateRef_;
 export const /** @type {?} */ RenderDebugInfo = r.RenderDebugInfo;

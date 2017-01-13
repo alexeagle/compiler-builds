@@ -5,7 +5,7 @@
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.io/license
  */
-import { tokenName } from '../compile_metadata';
+import { tokenName, viewClassName } from '../compile_metadata';
 import { EventHandlerVars } from '../compiler_util/expression_converter';
 import { isPresent } from '../facade/lang';
 import * as o from '../output/output_ast';
@@ -13,7 +13,7 @@ import { ViewType } from '../private_import_core';
 import { CompileMethod } from './compile_method';
 import { CompilePipe } from './compile_pipe';
 import { CompileQuery, addQueryToTokenMap, createQueryList } from './compile_query';
-import { getPropertyInView, getViewClassName } from './util';
+import { getPropertyInView } from './util';
 export let CompileViewRootNodeType = {};
 CompileViewRootNodeType.Node = 0;
 CompileViewRootNodeType.ViewContainer = 1;
@@ -92,7 +92,7 @@ export class CompileView {
         this.destroyMethod = new CompileMethod(this);
         this.detachMethod = new CompileMethod(this);
         this.viewType = getViewType(component, viewIndex);
-        this.className = getViewClassName(component, viewIndex);
+        this.className = viewClassName(component.type.reference, viewIndex);
         this.classType = o.expressionType(o.variable(this.className));
         this.classExpr = o.variable(this.className);
         if (this.viewType === ViewType.COMPONENT || this.viewType === ViewType.HOST) {
@@ -108,7 +108,7 @@ export class CompileView {
             const directiveInstance = o.THIS_EXPR.prop('context');
             this.component.viewQueries.forEach((queryMeta, queryIndex) => {
                 const propName = `_viewQuery_${tokenName(queryMeta.selectors[0])}_${queryIndex}`;
-                const queryList = createQueryList(queryMeta, directiveInstance, propName, this);
+                const queryList = createQueryList(propName, this);
                 const query = new CompileQuery(queryMeta, queryList, directiveInstance, this);
                 addQueryToTokenMap(viewQueries, query);
             });
@@ -152,9 +152,9 @@ export class CompileView {
     /**
      * @return {?}
      */
-    afterNodes() {
+    finish() {
         Array.from(this.viewQueries.values())
-            .forEach(queries => queries.forEach(q => q.afterChildren(this.createMethod, this.updateViewQueriesMethod)));
+            .forEach(queries => queries.forEach(q => q.generateStatements(this.createMethod, this.updateViewQueriesMethod)));
     }
 }
 function CompileView_tsickle_Closure_declarations() {

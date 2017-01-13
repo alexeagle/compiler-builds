@@ -24,13 +24,15 @@ export { VERSION } from './src/version';
 export { TextAst, BoundTextAst, AttrAst, BoundElementPropertyAst, BoundEventAst, ReferenceAst, VariableAst, ElementAst, EmbeddedTemplateAst, BoundDirectivePropertyAst, DirectiveAst, ProviderAst, ProviderAstType, NgContentAst, PropertyBindingType, templateVisitAll } from './src/template_parser/template_ast';
 export { TEMPLATE_TRANSFORMS } from './src/template_parser/template_parser';
 export { CompilerConfig, RenderTypes } from './src/config';
-export { CompileAnimationEntryMetadata, CompileAnimationStateMetadata, CompileAnimationStateDeclarationMetadata, CompileAnimationStateTransitionMetadata, CompileAnimationMetadata, CompileAnimationKeyframesSequenceMetadata, CompileAnimationStyleMetadata, CompileAnimationAnimateMetadata, CompileAnimationWithStepsMetadata, CompileAnimationSequenceMetadata, CompileAnimationGroupMetadata, identifierName, identifierModuleUrl, CompileSummaryKind, tokenName, tokenReference, CompileStylesheetMetadata, CompileTemplateMetadata, CompileDirectiveMetadata, createHostComponentMeta, CompilePipeMetadata, CompileNgModuleMetadata, TransitiveCompileNgModuleMetadata, ProviderMeta } from './src/compile_metadata';
+export { CompileAnimationEntryMetadata, CompileAnimationStateMetadata, CompileAnimationStateDeclarationMetadata, CompileAnimationStateTransitionMetadata, CompileAnimationMetadata, CompileAnimationKeyframesSequenceMetadata, CompileAnimationStyleMetadata, CompileAnimationAnimateMetadata, CompileAnimationWithStepsMetadata, CompileAnimationSequenceMetadata, CompileAnimationGroupMetadata, identifierName, identifierModuleUrl, viewClassName, hostViewClassName, dirWrapperClassName, componentFactoryName, CompileSummaryKind, tokenName, tokenReference, CompileStylesheetMetadata, CompileTemplateMetadata, CompileDirectiveMetadata, createHostComponentMeta, CompilePipeMetadata, CompileNgModuleMetadata, TransitiveCompileNgModuleMetadata, ProviderMeta } from './src/compile_metadata';
 export { createAotCompiler } from './src/aot/compiler_factory';
 export { AotCompiler, analyzeNgModules, analyzeAndValidateNgModules, extractProgramSymbols } from './src/aot/compiler';
-export { StaticSymbolCache, StaticReflector } from './src/aot/static_reflector';
+export { StaticReflector } from './src/aot/static_reflector';
 export { StaticAndDynamicReflectionCapabilities } from './src/aot/static_reflection_capabilities';
-export { StaticSymbol } from './src/aot/static_symbol';
+export { StaticSymbol, StaticSymbolCache } from './src/aot/static_symbol';
+export { ResolvedStaticSymbol, StaticSymbolResolver, unescapeIdentifier } from './src/aot/static_symbol_resolver';
 export { AotSummaryResolver } from './src/aot/summary_resolver';
+export { SummaryResolver } from './src/summary_resolver';
 export { JitCompiler } from './src/jit/compiler';
 export { COMPILER_PROVIDERS, JitCompilerFactory, platformCoreDynamic } from './src/jit/compiler_factory';
 export { createUrlResolverWithoutPackagePrefix, createOfflineCompileUrlResolver, DEFAULT_PACKAGE_URL_PROVIDER, UrlResolver, getUrlScheme } from './src/url_resolver';
@@ -57,4 +59,5 @@ export { StylesCompileDependency, StylesCompileResult, CompiledStylesheet, Style
 export { TemplateParseError, TemplateParseResult, TemplateParser, splitClasses, createElementCssSelector, removeSummaryDuplicates } from './src/template_parser/template_parser';
 export { ViewCompiler } from './src/view_compiler/view_compiler';
 export { AnimationParser } from './src/animation/animation_parser';
+export { SyntaxError } from './src/util';
 //# sourceMappingURL=index.js.map

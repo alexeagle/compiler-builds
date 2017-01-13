@@ -207,15 +207,44 @@ export function identifierModuleUrl(compileIdentifier) {
     }
     return reflector.importUri(ref);
 }
+/**
+ * @param {?} compType
+ * @param {?} embeddedTemplateIndex
+ * @return {?}
+ */
+export function viewClassName(compType, embeddedTemplateIndex) {
+    return `View_${identifierName({ reference: compType })}_${embeddedTemplateIndex}`;
+}
+/**
+ * @param {?} compType
+ * @return {?}
+ */
+export function hostViewClassName(compType) {
+    return `HostView_${identifierName({ reference: compType })}`;
+}
+/**
+ * @param {?} dirType
+ * @return {?}
+ */
+export function dirWrapperClassName(dirType) {
+    return `Wrapper_${identifierName({ reference: dirType })}`;
+}
+/**
+ * @param {?} compType
+ * @return {?}
+ */
+export function componentFactoryName(compType) {
+    return `${identifierName({ reference: compType })}NgFactory`;
+}
 export let CompileSummaryKind = {};
-CompileSummaryKind.Template = 0;
-CompileSummaryKind.Pipe = 1;
-CompileSummaryKind.Directive = 2;
-CompileSummaryKind.NgModule = 3;
-CompileSummaryKind[CompileSummaryKind.Template] = "Template";
+CompileSummaryKind.Pipe = 0;
+CompileSummaryKind.Directive = 1;
+CompileSummaryKind.NgModule = 2;
+CompileSummaryKind.Injectable = 3;
 CompileSummaryKind[CompileSummaryKind.Pipe] = "Pipe";
 CompileSummaryKind[CompileSummaryKind.Directive] = "Directive";
 CompileSummaryKind[CompileSummaryKind.NgModule] = "NgModule";
+CompileSummaryKind[CompileSummaryKind.Injectable] = "Injectable";
 /**
  * @param {?} token
  * @return {?}
@@ -283,10 +312,9 @@ export class CompileTemplateMetadata {
      */
     toSummary() {
         return {
-            summaryKind: CompileSummaryKind.Template,
             animations: this.animations.map(anim => anim.name),
             ngContentSelectors: this.ngContentSelectors,
-            encapsulation: this.encapsulation
+            encapsulation: this.encapsulation,
         };
     }
 }
@@ -317,7 +345,7 @@ export class CompileDirectiveMetadata {
     /**
      * @param {?=} __0
      */
-    constructor({ isHost, type, isComponent, selector, exportAs, changeDetection, inputs, outputs, hostListeners, hostProperties, hostAttributes, providers, viewProviders, queries, viewQueries, entryComponents, template } = {}) {
+    constructor({ isHost, type, isComponent, selector, exportAs, changeDetection, inputs, outputs, hostListeners, hostProperties, hostAttributes, providers, viewProviders, queries, viewQueries, entryComponents, template, wrapperType, componentViewType, componentFactory } = {}) {
         this.isHost = !!isHost;
         this.type = type;
         this.isComponent = isComponent;
@@ -335,12 +363,15 @@ export class CompileDirectiveMetadata {
         this.viewQueries = _normalizeArray(viewQueries);
         this.entryComponents = _normalizeArray(entryComponents);
         this.template = template;
+        this.wrapperType = wrapperType;
+        this.componentViewType = componentViewType;
+        this.componentFactory = componentFactory;
     }
     /**
      * @param {?=} __0
      * @return {?}
      */
-    static create({ isHost, type, isComponent, selector, exportAs, changeDetection, inputs, outputs, host, providers, viewProviders, queries, viewQueries, entryComponents, template } = {}) {
+    static create({ isHost, type, isComponent, selector, exportAs, changeDetection, inputs, outputs, host, providers, viewProviders, queries, viewQueries, entryComponents, template, wrapperType, componentViewType, componentFactory } = {}) {
         const /** @type {?} */ hostListeners = {};
         const /** @type {?} */ hostProperties = {};
         const /** @type {?} */ hostAttributes = {};
@@ -392,6 +423,9 @@ export class CompileDirectiveMetadata {
             viewQueries,
             entryComponents,
             template,
+            wrapperType,
+            componentViewType,
+            componentFactory,
         });
     }
     /**
@@ -414,7 +448,10 @@ export class CompileDirectiveMetadata {
             queries: this.queries,
             entryComponents: this.entryComponents,
             changeDetection: this.changeDetection,
-            template: this.template && this.template.toSummary()
+            template: this.template && this.template.toSummary(),
+            wrapperType: this.wrapperType,
+            componentViewType: this.componentViewType,
+            componentFactory: this.componentFactory
         };
     }
 }
@@ -453,18 +490,25 @@ function CompileDirectiveMetadata_tsickle_Closure_declarations() {
     CompileDirectiveMetadata.prototype.entryComponents;
     /** @type {?} */
     CompileDirectiveMetadata.prototype.template;
+    /** @type {?} */
+    CompileDirectiveMetadata.prototype.wrapperType;
+    /** @type {?} */
+    CompileDirectiveMetadata.prototype.componentViewType;
+    /** @type {?} */
+    CompileDirectiveMetadata.prototype.componentFactory;
 }
 /**
  * Construct {\@link CompileDirectiveMetadata} from {\@link ComponentTypeMetadata} and a selector.
- * @param {?} typeReference
+ * @param {?} hostTypeReference
  * @param {?} compMeta
+ * @param {?} hostViewType
  * @return {?}
  */
-export function createHostComponentMeta(typeReference, compMeta) {
+export function createHostComponentMeta(hostTypeReference, compMeta, hostViewType) {
     const /** @type {?} */ template = CssSelector.parse(compMeta.selector)[0].getMatchingElementTemplate();
     return CompileDirectiveMetadata.create({
         isHost: true,
-        type: { reference: typeReference, diDeps: [], lifecycleHooks: [] },
+        type: { reference: hostTypeReference, diDeps: [], lifecycleHooks: [] },
         template: new CompileTemplateMetadata({
             encapsulation: ViewEncapsulation.None,
             template: template,
@@ -483,7 +527,8 @@ export function createHostComponentMeta(typeReference, compMeta) {
         providers: [],
         viewProviders: [],
         queries: [],
-        viewQueries: []
+        viewQueries: [],
+        componentViewType: hostViewType
     });
 }
 export class CompilePipeMetadata {
@@ -655,13 +700,13 @@ export class TransitiveCompileNgModuleMetadata {
         }
     }
     /**
-     * @param {?} id
+     * @param {?} ec
      * @return {?}
      */
-    addEntryComponent(id) {
-        if (!this.entryComponentsSet.has(id.reference)) {
-            this.entryComponentsSet.add(id.reference);
-            this.entryComponents.push(id);
+    addEntryComponent(ec) {
+        if (!this.entryComponentsSet.has(ec.componentType)) {
+            this.entryComponentsSet.add(ec.componentType);
+            this.entryComponents.push(ec);
         }
     }
 }

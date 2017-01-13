@@ -5,12 +5,22 @@
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.io/license
  */
-import { Inject, Injectable, OpaqueToken, Optional } from '@angular/core/index';
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+import { Inject, OpaqueToken, Optional } from '@angular/core/index';
 import { identifierName } from '../compile_metadata';
 import { Parser } from '../expression_parser/parser';
 import { isPresent } from '../facade/lang';
 import { I18NHtmlParser } from '../i18n/i18n_html_parser';
 import { Identifiers, createIdentifierToken, identifierToken } from '../identifiers';
+import { CompilerInjectable } from '../injectable';
 import * as html from '../ml_parser/ast';
 import { ParseTreeResult } from '../ml_parser/html_parser';
 import { expandNodes } from '../ml_parser/icu_ast_expander';
@@ -22,6 +32,7 @@ import { ProviderElementContext, ProviderViewContext } from '../provider_analyze
 import { ElementSchemaRegistry } from '../schema/element_schema_registry';
 import { CssSelector, SelectorMatcher } from '../selector';
 import { isStyleUrlResolvable } from '../style_url_resolver';
+import { SyntaxError } from '../util';
 import { BindingParser } from './binding_parser';
 import { AttrAst, BoundDirectivePropertyAst, BoundTextAst, DirectiveAst, ElementAst, EmbeddedTemplateAst, NgContentAst, PropertyBindingType, ReferenceAst, TextAst, VariableAst, templateVisitAll } from './template_ast';
 import { PreparsedElementType, preparseElement } from './template_preparser';
@@ -85,7 +96,7 @@ function TemplateParseResult_tsickle_Closure_declarations() {
     /** @type {?} */
     TemplateParseResult.prototype.errors;
 }
-export class TemplateParser {
+export let TemplateParser = class TemplateParser {
     /**
      * @param {?} _exprParser
      * @param {?} _schemaRegistry
@@ -118,7 +129,7 @@ export class TemplateParser {
         }
         if (errors.length > 0) {
             const /** @type {?} */ errorString = errors.join('\n');
-            throw new Error(`Template parse errors:\n${errorString}`);
+            throw new SyntaxError(`Template parse errors:\n${errorString}`);
         }
         return result.templateAst;
     }
@@ -170,7 +181,7 @@ export class TemplateParser {
         if (errors.length > 0) {
             return new TemplateParseResult(result, errors);
         }
-        if (isPresent(this.transforms)) {
+        if (this.transforms) {
             this.transforms.forEach((transform) => { result = templateVisitAll(transform, result); });
         }
         return new TemplateParseResult(result, errors);
@@ -200,6 +211,7 @@ export class TemplateParser {
         }
     }
     /**
+     * \@internal
      * @param {?} result
      * @param {?} errors
      * @return {?}
@@ -218,10 +230,7 @@ export class TemplateParser {
             }
         }));
     }
-}
-TemplateParser.decorators = [
-    { type: Injectable },
-];
+};
 /** @nocollapse */
 TemplateParser.ctorParameters = () => [
     { type: Parser, },
@@ -230,9 +239,11 @@ TemplateParser.ctorParameters = () => [
     { type: Console, },
     { type: Array, decorators: [{ type: Optional }, { type: Inject, args: [TEMPLATE_TRANSFORMS,] },] },
 ];
+TemplateParser = __decorate([
+    CompilerInjectable(), 
+    __metadata('design:paramtypes', [Parser, ElementSchemaRegistry, I18NHtmlParser, (typeof (_a = typeof Console !== 'undefined' && Console) === 'function' && _a) || Object, Array])
+], TemplateParser);
 function TemplateParser_tsickle_Closure_declarations() {
-    /** @type {?} */
-    TemplateParser.decorators;
     /**
      * @nocollapse
      * @type {?}
@@ -293,7 +304,7 @@ class TemplateParseVisitor {
     visitText(text, parent) {
         const /** @type {?} */ ngContentIndex = parent.findNgContentIndex(TEXT_CSS_SELECTOR);
         const /** @type {?} */ expr = this._bindingParser.parseInterpolation(text.value, text.sourceSpan);
-        if (isPresent(expr)) {
+        if (expr) {
             return new BoundTextAst(expr, ngContentIndex, text.sourceSpan);
         }
         else {
@@ -349,14 +360,15 @@ class TemplateParseVisitor {
         const /** @type {?} */ isTemplateElement = lcElName == TEMPLATE_ELEMENT;
         element.attrs.forEach(attr => {
             const /** @type {?} */ hasBinding = this._parseAttr(isTemplateElement, attr, matchableAttrs, elementOrDirectiveProps, events, elementOrDirectiveRefs, elementVars);
-            let /** @type {?} */ templateBindingsSource = undefined;
-            let /** @type {?} */ prefixToken = undefined;
-            if (this._normalizeAttributeName(attr.name) == TEMPLATE_ATTR) {
+            let /** @type {?} */ templateBindingsSource;
+            let /** @type {?} */ prefixToken;
+            let /** @type {?} */ normalizedName = this._normalizeAttributeName(attr.name);
+            if (normalizedName == TEMPLATE_ATTR) {
                 templateBindingsSource = attr.value;
             }
-            else if (attr.name.startsWith(TEMPLATE_ATTR_PREFIX)) {
+            else if (normalizedName.startsWith(TEMPLATE_ATTR_PREFIX)) {
                 templateBindingsSource = attr.value;
-                prefixToken = attr.name.substring(TEMPLATE_ATTR_PREFIX.length); // remove the star
+                prefixToken = normalizedName.substring(TEMPLATE_ATTR_PREFIX.length) + ':';
             }
             const /** @type {?} */ hasTemplateBinding = isPresent(templateBindingsSource);
             if (hasTemplateBinding) {
@@ -364,7 +376,7 @@ class TemplateParseVisitor {
                     this._reportError(`Can't have multiple template bindings on one element. Use only one attribute named 'template' or prefixed with *`, attr.sourceSpan);
                 }
                 hasInlineTemplates = true;
-                this._bindingParser.parseInlineTemplateBinding(attr.name, prefixToken, templateBindingsSource, attr.sourceSpan, templateMatchableAttrs, templateElementOrDirectiveProps, templateElementVars);
+                this._bindingParser.parseInlineTemplateBinding(prefixToken, templateBindingsSource, attr.sourceSpan, templateMatchableAttrs, templateElementOrDirectiveProps, templateElementVars);
             }
             if (!hasBinding && !hasTemplateBinding) {
                 // don't include the bindings as attributes as well in the AST
@@ -620,7 +632,7 @@ class TemplateParseVisitor {
                 }
                 targetReferences.push(new ReferenceAst(elOrDirRef.name, refToken, elOrDirRef.sourceSpan));
             }
-        }); // fix syntax highlighting issue: `
+        });
         return directiveAsts;
     }
     /**
@@ -815,7 +827,7 @@ class NonBindableVisitor {
             // in the StyleCompiler
             return null;
         }
-        const /** @type {?} */ attrNameAndValues = ast.attrs.map(attrAst => [attrAst.name, attrAst.value]);
+        const /** @type {?} */ attrNameAndValues = ast.attrs.map((attr) => [attr.name, attr.value]);
         const /** @type {?} */ selector = createElementCssSelector(ast.name, attrNameAndValues);
         const /** @type {?} */ ngContentIndex = parent.findNgContentIndex(selector);
         const /** @type {?} */ children = html.visitAll(this, ast.children, EMPTY_ELEMENT_CONTEXT);
@@ -947,17 +959,17 @@ function ElementContext_tsickle_Closure_declarations() {
 }
 /**
  * @param {?} elementName
- * @param {?} matchableAttrs
+ * @param {?} attributes
  * @return {?}
  */
-export function createElementCssSelector(elementName, matchableAttrs) {
+export function createElementCssSelector(elementName, attributes) {
     const /** @type {?} */ cssSelector = new CssSelector();
     const /** @type {?} */ elNameNoNs = splitNsName(elementName)[1];
     cssSelector.setElement(elNameNoNs);
-    for (let /** @type {?} */ i = 0; i < matchableAttrs.length; i++) {
-        const /** @type {?} */ attrName = matchableAttrs[i][0];
+    for (let /** @type {?} */ i = 0; i < attributes.length; i++) {
+        const /** @type {?} */ attrName = attributes[i][0];
         const /** @type {?} */ attrNameNoNs = splitNsName(attrName)[1];
-        const /** @type {?} */ attrValue = matchableAttrs[i][1];
+        const /** @type {?} */ attrValue = attributes[i][1];
         cssSelector.addAttribute(attrNameNoNs, attrValue);
         if (attrName.toLowerCase() == CLASS_ATTR) {
             const /** @type {?} */ classes = splitClasses(attrValue);
@@ -988,4 +1000,5 @@ export function removeSummaryDuplicates(items) {
     });
     return Array.from(map.values());
 }
+var _a;
 //# sourceMappingURL=template_parser.js.map

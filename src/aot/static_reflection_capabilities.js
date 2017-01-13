@@ -90,7 +90,7 @@ export class StaticAndDynamicReflectionCapabilities {
      * @return {?}
      */
     resolveIdentifier(name, moduleUrl, runtime) {
-        return this.staticDelegate.resolveIdentifier(name, moduleUrl, runtime);
+        return this.staticDelegate.resolveIdentifier(name, moduleUrl);
     }
     /**
      * @param {?} enumIdentifier

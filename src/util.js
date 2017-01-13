@@ -5,6 +5,7 @@
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.io/license
  */
+import { BaseError } from './facade/errors';
 import { isPrimitive, isStrictStringMap } from './facade/lang';
 export const /** @type {?} */ MODULE_SUFFIX = '';
 const /** @type {?} */ CAMEL_CASE_REGEXP = /([A-Z])/g;
@@ -119,5 +120,7 @@ function SyncAsyncResult_tsickle_Closure_declarations() {
     SyncAsyncResult.prototype.syncResult;
     /** @type {?} */
     SyncAsyncResult.prototype.asyncResult;
+}
+export class SyntaxError extends BaseError {
 }
 //# sourceMappingURL=util.js.map

@@ -330,7 +330,7 @@ class _TreeBuilder {
         }
         const /** @type {?} */ tagDef = this.getTagDefinition(el.name);
         const { parent, container } = this._getParentElementSkippingContainers();
-        if (isPresent(parent) && tagDef.requireExtraParent(parent.name)) {
+        if (parent && tagDef.requireExtraParent(parent.name)) {
             const /** @type {?} */ newParent = new html.Element(tagDef.parentToAdd, [], [], el.sourceSpan, el.startSourceSpan, el.endSourceSpan);
             this._insertBeforeContainer(parent, container, newParent);
         }
@@ -427,6 +427,7 @@ class _TreeBuilder {
      * When no container is given, the node is appended as a child of the parent.
      * Also updates the element stack accordingly.
      *
+     * \@internal
      * @param {?} parent
      * @param {?} container
      * @param {?} node

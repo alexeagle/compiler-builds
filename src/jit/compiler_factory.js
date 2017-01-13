@@ -5,7 +5,16 @@
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.io/license
  */
-import { COMPILER_OPTIONS, Compiler, CompilerFactory, Inject, Injectable, Optional, PLATFORM_INITIALIZER, ReflectiveInjector, TRANSLATIONS, TRANSLATIONS_FORMAT, ViewEncapsulation, createPlatformFactory, isDevMode, platformCore } from '@angular/core/index';
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+import { COMPILER_OPTIONS, Compiler, CompilerFactory, Inject, OpaqueToken, Optional, PLATFORM_INITIALIZER, ReflectiveInjector, TRANSLATIONS, TRANSLATIONS_FORMAT, ViewEncapsulation, createPlatformFactory, isDevMode, platformCore } from '@angular/core/index';
 import { AnimationParser } from '../animation/animation_parser';
 import { CompilerConfig } from '../config';
 import { DirectiveNormalizer } from '../directive_normalizer';
@@ -14,6 +23,7 @@ import { DirectiveWrapperCompiler } from '../directive_wrapper_compiler';
 import { Lexer } from '../expression_parser/lexer';
 import { Parser } from '../expression_parser/parser';
 import * as i18n from '../i18n/index';
+import { CompilerInjectable } from '../injectable';
 import { CompileMetadataResolver } from '../metadata_resolver';
 import { HtmlParser } from '../ml_parser/html_parser';
 import { NgModuleCompiler } from '../ng_module_compiler';
@@ -38,6 +48,7 @@ const /** @type {?} */ _NO_RESOURCE_LOADER = {
         throw new Error(`No ResourceLoader implementation has been provided. Can't read the url "${url}"`);
     }
 };
+const /** @type {?} */ baseHtmlParser = new OpaqueToken('HtmlParser');
 /**
  * A set of providers that provide `JitCompiler` and its dependencies to use for
  * template compilation.
@@ -50,15 +61,22 @@ export const /** @type {?} */ COMPILER_PROVIDERS = [
     Console,
     Lexer,
     Parser,
-    HtmlParser,
+    {
+        provide: baseHtmlParser,
+        useClass: HtmlParser,
+    },
     {
         provide: i18n.I18NHtmlParser,
         useFactory: (parser, translations, format) => new i18n.I18NHtmlParser(parser, translations, format),
         deps: [
-            HtmlParser,
+            baseHtmlParser,
             [new Optional(), new Inject(TRANSLATIONS)],
             [new Optional(), new Inject(TRANSLATIONS_FORMAT)],
         ]
+    },
+    {
+        provide: HtmlParser,
+        useExisting: i18n.I18NHtmlParser,
     },
     TemplateParser,
     DirectiveNormalizer,
@@ -79,7 +97,7 @@ export const /** @type {?} */ COMPILER_PROVIDERS = [
     NgModuleResolver,
     AnimationParser
 ];
-export class JitCompilerFactory {
+export let JitCompilerFactory = class JitCompilerFactory {
     /**
      * @param {?} defaultOptions
      */
@@ -119,17 +137,16 @@ export class JitCompilerFactory {
         ]);
         return injector.get(Compiler);
     }
-}
-JitCompilerFactory.decorators = [
-    { type: Injectable },
-];
+};
 /** @nocollapse */
 JitCompilerFactory.ctorParameters = () => [
     { type: Array, decorators: [{ type: Inject, args: [COMPILER_OPTIONS,] },] },
 ];
+JitCompilerFactory = __decorate([
+    CompilerInjectable(), 
+    __metadata('design:paramtypes', [Array])
+], JitCompilerFactory);
 function JitCompilerFactory_tsickle_Closure_declarations() {
-    /** @type {?} */
-    JitCompilerFactory.decorators;
     /**
      * @nocollapse
      * @type {?}

@@ -7,7 +7,7 @@
  */
 import { tokenName, tokenReference } from '../compile_metadata';
 import { createDiTokenExpression } from '../compiler_util/identifier_util';
-import { DirectiveWrapperCompiler, DirectiveWrapperExpressions } from '../directive_wrapper_compiler';
+import { DirectiveWrapperExpressions } from '../directive_wrapper_compiler';
 import { isPresent } from '../facade/lang';
 import { Identifiers, createIdentifier, createIdentifierToken, identifierToken, resolveIdentifier } from '../identifiers';
 import * as o from '../output/output_ast';
@@ -124,9 +124,8 @@ export class CompileElement extends CompileNode {
      */
     _createComponentFactoryResolver() {
         const /** @type {?} */ entryComponents = this.component.entryComponents.map((entryComponent) => {
-            const /** @type {?} */ id = { reference: null };
-            this.view.targetDependencies.push(new ComponentFactoryDependency(entryComponent, id));
-            return id;
+            this.view.targetDependencies.push(new ComponentFactoryDependency(entryComponent.componentType));
+            return { reference: entryComponent.componentFactory };
         });
         if (!entryComponents || entryComponents.length === 0) {
             return;
@@ -201,9 +200,9 @@ export class CompileElement extends CompileNode {
                     const /** @type {?} */ deps = provider.deps || provider.useClass.diDeps;
                     const /** @type {?} */ depsExpr = deps.map((dep) => this._getDependency(resolvedProvider.providerType, dep));
                     if (isDirectiveWrapper) {
-                        const /** @type {?} */ directiveWrapperIdentifier = { reference: null };
-                        this.view.targetDependencies.push(new DirectiveWrapperDependency(provider.useClass, DirectiveWrapperCompiler.dirWrapperClassName(provider.useClass), directiveWrapperIdentifier));
-                        return DirectiveWrapperExpressions.create(directiveWrapperIdentifier, depsExpr);
+                        const /** @type {?} */ dirMeta = this._directives.find(dir => dir.type.reference === provider.useClass.reference);
+                        this.view.targetDependencies.push(new DirectiveWrapperDependency(dirMeta.type.reference));
+                        return DirectiveWrapperExpressions.create({ reference: dirMeta.wrapperType }, depsExpr);
                     }
                     else {
                         return o.importExpr(provider.useClass)
@@ -215,7 +214,7 @@ export class CompileElement extends CompileNode {
                 }
             });
             const /** @type {?} */ propName = `_${tokenName(resolvedProvider.token)}_${this.nodeIndex}_${this.instances.size}`;
-            const /** @type {?} */ instance = createProviderProperty(propName, resolvedProvider, providerValueExpressions, resolvedProvider.multiProvider, resolvedProvider.eager, this);
+            const /** @type {?} */ instance = createProviderProperty(propName, providerValueExpressions, resolvedProvider.multiProvider, resolvedProvider.eager, this);
             if (isDirectiveWrapper) {
                 this.directiveWrapperInstance.set(tokenReference(resolvedProvider.token), instance);
                 this.instances.set(tokenReference(resolvedProvider.token), DirectiveWrapperExpressions.context(instance));
@@ -229,11 +228,6 @@ export class CompileElement extends CompileNode {
             const /** @type {?} */ directiveInstance = this.instances.get(tokenReference(identifierToken(directive.type)));
             directive.queries.forEach((queryMeta) => { this._addQuery(queryMeta, directiveInstance); });
         }
-        const /** @type {?} */ queriesWithReads = [];
-        Array.from(this._resolvedProviders.values()).forEach((resolvedProvider) => {
-            const /** @type {?} */ queriesForProvider = this._getQueriesFor(resolvedProvider.token);
-            queriesWithReads.push(...queriesForProvider.map(query => new _QueryWithRead(query, resolvedProvider.token)));
-        });
         Object.keys(this.referenceTokens).forEach(varName => {
             const /** @type {?} */ token = this.referenceTokens[varName];
             let /** @type {?} */ varValue;
@@ -244,28 +238,6 @@ export class CompileElement extends CompileNode {
                 varValue = this.renderNode;
             }
             this.view.locals.set(varName, varValue);
-            const /** @type {?} */ varToken = { value: varName };
-            queriesWithReads.push(...this._getQueriesFor(varToken).map(query => new _QueryWithRead(query, varToken)));
-        });
-        queriesWithReads.forEach((queryWithRead) => {
-            let /** @type {?} */ value;
-            if (isPresent(queryWithRead.read.identifier)) {
-                // query for an identifier
-                value = this.instances.get(tokenReference(queryWithRead.read));
-            }
-            else {
-                // query for a reference
-                const /** @type {?} */ token = this.referenceTokens[queryWithRead.read.value];
-                if (isPresent(token)) {
-                    value = this.instances.get(tokenReference(token));
-                }
-                else {
-                    value = this.elementRef;
-                }
-            }
-            if (isPresent(value)) {
-                queryWithRead.query.addValue(value, this.view);
-            }
         });
     }
     /**
@@ -285,8 +257,13 @@ export class CompileElement extends CompileNode {
             const /** @type {?} */ providerChildNodeCount = resolvedProvider.providerType === ProviderAstType.PrivateService ? 0 : childNodeCount;
             this.view.injectorGetMethod.addStmt(createInjectInternalCondition(this.nodeIndex, providerChildNodeCount, resolvedProvider, providerExpr));
         });
+    }
+    /**
+     * @return {?}
+     */
+    finish() {
         Array.from(this._queries.values())
-            .forEach(queries => queries.forEach(q => q.afterChildren(this.view.createMethod, this.view.updateContentQueriesMethod)));
+            .forEach(queries => queries.forEach(q => q.generateStatements(this.view.createMethod, this.view.updateContentQueriesMethod)));
     }
     /**
      * @param {?} ngContentIndex
@@ -308,14 +285,13 @@ export class CompileElement extends CompileNode {
      * @return {?}
      */
     getProviderTokens() {
-        return Array.from(this._resolvedProviders.values())
-            .map((resolvedProvider) => createDiTokenExpression(resolvedProvider.token));
+        return Array.from(this._resolvedProviders.values()).map(provider => provider.token);
     }
     /**
      * @param {?} token
      * @return {?}
      */
-    _getQueriesFor(token) {
+    getQueriesFor(token) {
         const /** @type {?} */ result = [];
         let /** @type {?} */ currentEl = this;
         let /** @type {?} */ distance = 0;
@@ -343,7 +319,7 @@ export class CompileElement extends CompileNode {
      */
     _addQuery(queryMeta, directiveInstance) {
         const /** @type {?} */ propName = `_query_${tokenName(queryMeta.selectors[0])}_${this.nodeIndex}_${this._queryCount++}`;
-        const /** @type {?} */ queryList = createQueryList(queryMeta, directiveInstance, propName, this.view);
+        const /** @type {?} */ queryList = createQueryList(propName, this.view);
         const /** @type {?} */ query = new CompileQuery(queryMeta, queryList, directiveInstance, this.view);
         addQueryToTokenMap(this._queries, query);
         return query;
@@ -465,14 +441,13 @@ function createInjectInternalCondition(nodeIndex, childNodeCount, provider, prov
 }
 /**
  * @param {?} propName
- * @param {?} provider
  * @param {?} providerValueExpressions
  * @param {?} isMulti
  * @param {?} isEager
  * @param {?} compileElement
  * @return {?}
  */
-function createProviderProperty(propName, provider, providerValueExpressions, isMulti, isEager, compileElement) {
+function createProviderProperty(propName, providerValueExpressions, isMulti, isEager, compileElement) {
     const /** @type {?} */ view = compileElement.view;
     let /** @type {?} */ resolvedProviderValueExpr;
     let /** @type {?} */ type;
@@ -502,21 +477,5 @@ function createProviderProperty(propName, provider, providerValueExpressions, is
         view.getters.push(new o.ClassGetter(propName, getter.finish(), type));
     }
     return o.THIS_EXPR.prop(propName);
-}
-class _QueryWithRead {
-    /**
-     * @param {?} query
-     * @param {?} match
-     */
-    constructor(query, match) {
-        this.query = query;
-        this.read = query.meta.read || match;
-    }
-}
-function _QueryWithRead_tsickle_Closure_declarations() {
-    /** @type {?} */
-    _QueryWithRead.prototype.read;
-    /** @type {?} */
-    _QueryWithRead.prototype.query;
 }
 //# sourceMappingURL=compile_element.js.map

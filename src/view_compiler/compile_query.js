@@ -7,7 +7,6 @@
  */
 import { tokenReference } from '../compile_metadata';
 import { ListWrapper } from '../facade/collection';
-import { isPresent } from '../facade/lang';
 import { Identifiers, createIdentifier } from '../identifiers';
 import * as o from '../output/output_ast';
 import { getPropertyInView } from './util';
@@ -49,7 +48,7 @@ export class CompileQuery {
     addValue(value, view) {
         let /** @type {?} */ currentView = view;
         const /** @type {?} */ elPath = [];
-        while (isPresent(currentView) && currentView !== this.view) {
+        while (currentView && currentView !== this.view) {
             const /** @type {?} */ parentEl = currentView.declarationElement;
             elPath.unshift(parentEl);
             currentView = parentEl.view;
@@ -83,10 +82,10 @@ export class CompileQuery {
      * @param {?} targetDynamicMethod
      * @return {?}
      */
-    afterChildren(targetStaticMethod, targetDynamicMethod) {
+    generateStatements(targetStaticMethod, targetDynamicMethod) {
         const /** @type {?} */ values = createQueryValues(this._values);
         const /** @type {?} */ updateStmts = [this.queryList.callMethod('reset', [o.literalArr(values)]).toStmt()];
-        if (isPresent(this.ownerDirectiveExpression)) {
+        if (this.ownerDirectiveExpression) {
             const /** @type {?} */ valueExpr = this.meta.first ? this.queryList.prop('first') : this.queryList;
             updateStmts.push(this.ownerDirectiveExpression.prop(this.meta.propertyName).set(valueExpr).toStmt());
         }
@@ -145,13 +144,11 @@ function mapNestedViews(viewContainer, view, expressions) {
     ]);
 }
 /**
- * @param {?} query
- * @param {?} directiveInstance
  * @param {?} propertyName
  * @param {?} compileView
  * @return {?}
  */
-export function createQueryList(query, directiveInstance, propertyName, compileView) {
+export function createQueryList(propertyName, compileView) {
     compileView.fields.push(new o.ClassField(propertyName, o.importType(createIdentifier(Identifiers.QueryList), [o.DYNAMIC_TYPE])));
     const /** @type {?} */ expr = o.THIS_EXPR.prop(propertyName);
     compileView.createMethod.addStmt(o.THIS_EXPR.prop(propertyName)

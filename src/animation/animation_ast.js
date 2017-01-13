@@ -1,9 +1,4 @@
 /**
- * @license undefined
- * Copyright Google Inc. All Rights Reserved.
- *
- * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
  * @abstract
  */
 export class AnimationAst {
@@ -106,6 +101,19 @@ function AnimationStateTransitionExpression_tsickle_Closure_declarations() {
     AnimationStateTransitionExpression.prototype.fromState;
     /** @type {?} */
     AnimationStateTransitionExpression.prototype.toState;
+}
+export class AnimationStateTransitionFnExpression extends AnimationStateTransitionExpression {
+    /**
+     * @param {?} fn
+     */
+    constructor(fn) {
+        super(null, null);
+        this.fn = fn;
+    }
+}
+function AnimationStateTransitionFnExpression_tsickle_Closure_declarations() {
+    /** @type {?} */
+    AnimationStateTransitionFnExpression.prototype.fn;
 }
 export class AnimationStateTransitionAst extends AnimationStateAst {
     /**

@@ -36,6 +36,7 @@ export class Xmb {
      * @return {?}
      */
     write(messages) {
+        const /** @type {?} */ exampleVisitor = new ExampleVisitor();
         const /** @type {?} */ visitor = new _Visitor();
         const /** @type {?} */ visited = {};
         let /** @type {?} */ rootNode = new xml.Tag(_MESSAGES_TAG);
@@ -60,7 +61,7 @@ export class Xmb {
             new xml.CR(),
             new xml.Doctype(_MESSAGES_TAG, _DOCTYPE),
             new xml.CR(),
-            rootNode,
+            exampleVisitor.addDefaultExamples(rootNode),
             new xml.CR(),
         ]);
     }
@@ -154,5 +155,45 @@ class _Visitor {
  */
 export function digest(message) {
     return decimalDigest(message);
+}
+class ExampleVisitor {
+    /**
+     * @param {?} node
+     * @return {?}
+     */
+    addDefaultExamples(node) {
+        node.visit(this);
+        return node;
+    }
+    /**
+     * @param {?} tag
+     * @return {?}
+     */
+    visitTag(tag) {
+        if (tag.name === _PLACEHOLDER_TAG) {
+            if (!tag.children || tag.children.length == 0) {
+                const /** @type {?} */ exText = new xml.Text(tag.attrs['name'] || '...');
+                tag.children = [new xml.Tag(_EXEMPLE_TAG, {}, [exText])];
+            }
+        }
+        else if (tag.children) {
+            tag.children.forEach(node => node.visit(this));
+        }
+    }
+    /**
+     * @param {?} text
+     * @return {?}
+     */
+    visitText(text) { }
+    /**
+     * @param {?} decl
+     * @return {?}
+     */
+    visitDeclaration(decl) { }
+    /**
+     * @param {?} doctype
+     * @return {?}
+     */
+    visitDoctype(doctype) { }
 }
 //# sourceMappingURL=xmb.js.map

@@ -26,15 +26,6 @@ export class ViewEncapsulationEnum {
         return createEnumExpression(Identifiers.ViewEncapsulation, value);
     }
 }
-export class ChangeDetectionStrategyEnum {
-    /**
-     * @param {?} value
-     * @return {?}
-     */
-    static fromValue(value) {
-        return createEnumExpression(Identifiers.ChangeDetectionStrategy, value);
-    }
-}
 export class ChangeDetectorStatusEnum {
     /**
      * @param {?} value
@@ -64,11 +55,14 @@ export class ViewProperties {
 }
 ViewProperties.renderer = o.THIS_EXPR.prop('renderer');
 ViewProperties.viewUtils = o.THIS_EXPR.prop('viewUtils');
+ViewProperties.throwOnChange = o.THIS_EXPR.prop('throwOnChange');
 function ViewProperties_tsickle_Closure_declarations() {
     /** @type {?} */
     ViewProperties.renderer;
     /** @type {?} */
     ViewProperties.viewUtils;
+    /** @type {?} */
+    ViewProperties.throwOnChange;
 }
 export class InjectMethodVars {
 }
@@ -82,18 +76,5 @@ function InjectMethodVars_tsickle_Closure_declarations() {
     InjectMethodVars.requestNodeIndex;
     /** @type {?} */
     InjectMethodVars.notFoundResult;
-}
-export class DetectChangesVars {
-}
-DetectChangesVars.throwOnChange = o.variable(`throwOnChange`);
-DetectChangesVars.changes = o.variable(`changes`);
-DetectChangesVars.changed = o.variable(`changed`);
-function DetectChangesVars_tsickle_Closure_declarations() {
-    /** @type {?} */
-    DetectChangesVars.throwOnChange;
-    /** @type {?} */
-    DetectChangesVars.changes;
-    /** @type {?} */
-    DetectChangesVars.changed;
 }
 //# sourceMappingURL=constants.js.map

@@ -29,6 +29,8 @@ import { ViewCompiler } from '../view_compiler/view_compiler';
 import { AotCompiler } from './compiler';
 import { StaticAndDynamicReflectionCapabilities } from './static_reflection_capabilities';
 import { StaticReflector } from './static_reflector';
+import { StaticSymbolCache } from './static_symbol';
+import { StaticSymbolResolver } from './static_symbol_resolver';
 import { AotSummaryResolver } from './summary_resolver';
 /**
  * Creates a new AotCompiler based on options and a host.
@@ -39,7 +41,10 @@ import { AotSummaryResolver } from './summary_resolver';
 export function createAotCompiler(compilerHost, options) {
     let /** @type {?} */ translations = options.translations || '';
     const /** @type {?} */ urlResolver = createOfflineCompileUrlResolver();
-    const /** @type {?} */ staticReflector = new StaticReflector(compilerHost);
+    const /** @type {?} */ symbolCache = new StaticSymbolCache();
+    const /** @type {?} */ summaryResolver = new AotSummaryResolver(compilerHost, symbolCache);
+    const /** @type {?} */ symbolResolver = new StaticSymbolResolver(compilerHost, symbolCache, summaryResolver);
+    const /** @type {?} */ staticReflector = new StaticReflector(symbolResolver);
     StaticAndDynamicReflectionCapabilities.install(staticReflector);
     const /** @type {?} */ htmlParser = new I18NHtmlParser(new HtmlParser(), translations, options.i18nFormat);
     const /** @type {?} */ config = new CompilerConfig({
@@ -53,10 +58,13 @@ export function createAotCompiler(compilerHost, options) {
     const /** @type {?} */ elementSchemaRegistry = new DomElementSchemaRegistry();
     const /** @type {?} */ console = new Console();
     const /** @type {?} */ tmplParser = new TemplateParser(expressionParser, elementSchemaRegistry, htmlParser, console, []);
-    const /** @type {?} */ summaryResolver = new AotSummaryResolver(compilerHost, staticReflector, options);
-    const /** @type {?} */ resolver = new CompileMetadataResolver(new NgModuleResolver(staticReflector), new DirectiveResolver(staticReflector), new PipeResolver(staticReflector), summaryResolver, elementSchemaRegistry, normalizer, staticReflector);
+    const /** @type {?} */ resolver = new CompileMetadataResolver(new NgModuleResolver(staticReflector), new DirectiveResolver(staticReflector), new PipeResolver(staticReflector), summaryResolver, elementSchemaRegistry, normalizer, symbolCache, staticReflector);
     // TODO(vicb): do not pass options.i18nFormat here
-    const /** @type {?} */ compiler = new AotCompiler(resolver, tmplParser, new StyleCompiler(urlResolver), new ViewCompiler(config, elementSchemaRegistry), new DirectiveWrapperCompiler(config, expressionParser, elementSchemaRegistry, console), new NgModuleCompiler(), new TypeScriptEmitter(compilerHost), summaryResolver, options.locale, options.i18nFormat, new AnimationParser(elementSchemaRegistry), staticReflector, options);
+    const /** @type {?} */ importResolver = {
+        getImportAs: (symbol) => symbolResolver.getImportAs(symbol),
+        fileNameToModuleName: (fileName, containingFilePath) => compilerHost.fileNameToModuleName(fileName, containingFilePath)
+    };
+    const /** @type {?} */ compiler = new AotCompiler(compilerHost, resolver, tmplParser, new StyleCompiler(urlResolver), new ViewCompiler(config, elementSchemaRegistry), new DirectiveWrapperCompiler(config, expressionParser, elementSchemaRegistry, console), new NgModuleCompiler(), new TypeScriptEmitter(importResolver), summaryResolver, options.locale, options.i18nFormat, new AnimationParser(elementSchemaRegistry), symbolResolver);
     return { compiler, reflector: staticReflector };
 }
 //# sourceMappingURL=compiler_factory.js.map

@@ -5,9 +5,7 @@
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.io/license
  */
-import { identifierName } from '../compile_metadata';
 import { createDiTokenExpression } from '../compiler_util/identifier_util';
-import { isPresent } from '../facade/lang';
 import * as o from '../output/output_ast';
 import { ViewType } from '../private_import_core';
 /**
@@ -23,7 +21,7 @@ export function getPropertyInView(property, callingView, definedView) {
     else {
         let /** @type {?} */ viewProp = o.THIS_EXPR;
         let /** @type {?} */ currView = callingView;
-        while (currView !== definedView && isPresent(currView.declarationElement.view)) {
+        while (currView !== definedView && currView.declarationElement.view) {
             currView = currView.declarationElement.view;
             viewProp = viewProp.prop('parentView');
         }
@@ -99,14 +97,6 @@ export function injectFromViewParentInjector(view, token, optional) {
         args.push(o.NULL_EXPR);
     }
     return viewExpr.callMethod('injectorGet', args);
-}
-/**
- * @param {?} component
- * @param {?} embeddedTemplateIndex
- * @return {?}
- */
-export function getViewClassName(component, embeddedTemplateIndex) {
-    return `View_${identifierName(component.type)}${embeddedTemplateIndex}`;
 }
 /**
  * @param {?} elementIndex

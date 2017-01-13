@@ -5,32 +5,41 @@
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.io/license
  */
-import { Injectable } from '@angular/core/index';
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
 import { identifierModuleUrl, identifierName, tokenName, tokenReference } from './compile_metadata';
 import { createDiTokenExpression } from './compiler_util/identifier_util';
 import { isPresent } from './facade/lang';
 import { Identifiers, createIdentifier, resolveIdentifier } from './identifiers';
+import { CompilerInjectable } from './injectable';
 import { createClassStmt } from './output/class_builder';
 import * as o from './output/output_ast';
 import { convertValueToOutputAst } from './output/value_util';
 import { ParseLocation, ParseSourceFile, ParseSourceSpan } from './parse_util';
 import { LifecycleHooks } from './private_import_core';
 import { NgModuleProviderAnalyzer } from './provider_analyzer';
+/**
+ * This is currently not read, but will probably be used in the future.
+ * We keep it as we already pass it through all the rigth places...
+ */
 export class ComponentFactoryDependency {
     /**
-     * @param {?} comp
-     * @param {?} placeholder
+     * @param {?} compType
      */
-    constructor(comp, placeholder) {
-        this.comp = comp;
-        this.placeholder = placeholder;
+    constructor(compType) {
+        this.compType = compType;
     }
 }
 function ComponentFactoryDependency_tsickle_Closure_declarations() {
     /** @type {?} */
-    ComponentFactoryDependency.prototype.comp;
-    /** @type {?} */
-    ComponentFactoryDependency.prototype.placeholder;
+    ComponentFactoryDependency.prototype.compType;
 }
 export class NgModuleCompileResult {
     /**
@@ -52,7 +61,7 @@ function NgModuleCompileResult_tsickle_Closure_declarations() {
     /** @type {?} */
     NgModuleCompileResult.prototype.dependencies;
 }
-export class NgModuleCompiler {
+export let NgModuleCompiler = class NgModuleCompiler {
     /**
      * @param {?} ngModuleMeta
      * @param {?} extraProviders
@@ -68,12 +77,11 @@ export class NgModuleCompiler {
         const /** @type {?} */ deps = [];
         const /** @type {?} */ bootstrapComponentFactories = [];
         const /** @type {?} */ entryComponentFactories = ngModuleMeta.transitiveModule.entryComponents.map((entryComponent) => {
-            const /** @type {?} */ id = { reference: null };
-            if (ngModuleMeta.bootstrapComponents.some((id) => id.reference === entryComponent.reference)) {
-                bootstrapComponentFactories.push(id);
+            if (ngModuleMeta.bootstrapComponents.some((id) => id.reference === entryComponent.componentType)) {
+                bootstrapComponentFactories.push({ reference: entryComponent.componentFactory });
             }
-            deps.push(new ComponentFactoryDependency(entryComponent, id));
-            return id;
+            deps.push(new ComponentFactoryDependency(entryComponent.componentType));
+            return { reference: entryComponent.componentFactory };
         });
         const /** @type {?} */ builder = new _InjectorBuilder(ngModuleMeta, entryComponentFactories, bootstrapComponentFactories, sourceSpan);
         const /** @type {?} */ providerParser = new NgModuleProviderAnalyzer(ngModuleMeta, extraProviders, sourceSpan);
@@ -93,21 +101,11 @@ export class NgModuleCompiler {
         }
         return new NgModuleCompileResult(stmts, ngModuleFactoryVar, deps);
     }
-}
-NgModuleCompiler.decorators = [
-    { type: Injectable },
-];
-/** @nocollapse */
-NgModuleCompiler.ctorParameters = () => [];
-function NgModuleCompiler_tsickle_Closure_declarations() {
-    /** @type {?} */
-    NgModuleCompiler.decorators;
-    /**
-     * @nocollapse
-     * @type {?}
-     */
-    NgModuleCompiler.ctorParameters;
-}
+};
+NgModuleCompiler = __decorate([
+    CompilerInjectable(), 
+    __metadata('design:paramtypes', [])
+], NgModuleCompiler);
 class _InjectorBuilder {
     /**
      * @param {?} _ngModuleMeta

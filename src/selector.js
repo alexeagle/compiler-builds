@@ -9,7 +9,7 @@ import { getHtmlTagDefinition } from './ml_parser/html_tags';
 const /** @type {?} */ _SELECTOR_REGEXP = new RegExp('(\\:not\\()|' +
     '([-\\w]+)|' +
     '(?:\\.([-\\w]+))|' +
-    '(?:\\[([-\\w*]+)(?:=([^\\]]*))?\\])|' +
+    '(?:\\[([.-\\w*]+)(?:=([^\\]]*))?\\])|' +
     '(\\))|' +
     '(\\s*,\\s*)', // ","
 'g');
@@ -325,6 +325,7 @@ export class SelectorMatcher {
         return result;
     }
     /**
+     * \@internal
      * @param {?} map
      * @param {?} name
      * @param {?} cssSelector
@@ -352,6 +353,7 @@ export class SelectorMatcher {
         return result;
     }
     /**
+     * \@internal
      * @param {?} map
      * @param {?} name
      * @param {?} cssSelector

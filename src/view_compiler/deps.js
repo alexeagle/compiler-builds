@@ -1,64 +1,49 @@
 /**
- * @license
- * Copyright Google Inc. All Rights Reserved.
- *
- * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
+ * This is currently not read, but will probably be used in the future.
+ * We keep it as we already pass it through all the right places...
  */
-export class ViewClassDependency {
+export class ComponentViewDependency {
     /**
-     * @param {?} comp
-     * @param {?} name
-     * @param {?} placeholder
+     * @param {?} compType
      */
-    constructor(comp, name, placeholder) {
-        this.comp = comp;
-        this.name = name;
-        this.placeholder = placeholder;
+    constructor(compType) {
+        this.compType = compType;
     }
 }
-function ViewClassDependency_tsickle_Closure_declarations() {
+function ComponentViewDependency_tsickle_Closure_declarations() {
     /** @type {?} */
-    ViewClassDependency.prototype.comp;
-    /** @type {?} */
-    ViewClassDependency.prototype.name;
-    /** @type {?} */
-    ViewClassDependency.prototype.placeholder;
+    ComponentViewDependency.prototype.compType;
 }
+/**
+ * This is currently not read, but will probably be used in the future.
+ * We keep it as we already pass it through all the right places...
+ */
 export class ComponentFactoryDependency {
     /**
-     * @param {?} comp
-     * @param {?} placeholder
+     * @param {?} compType
      */
-    constructor(comp, placeholder) {
-        this.comp = comp;
-        this.placeholder = placeholder;
+    constructor(compType) {
+        this.compType = compType;
     }
 }
 function ComponentFactoryDependency_tsickle_Closure_declarations() {
     /** @type {?} */
-    ComponentFactoryDependency.prototype.comp;
-    /** @type {?} */
-    ComponentFactoryDependency.prototype.placeholder;
+    ComponentFactoryDependency.prototype.compType;
 }
+/**
+ * This is currently not read, but will probably be used in the future.
+ * We keep it as we already pass it through all the right places...
+ */
 export class DirectiveWrapperDependency {
     /**
-     * @param {?} dir
-     * @param {?} name
-     * @param {?} placeholder
+     * @param {?} dirType
      */
-    constructor(dir, name, placeholder) {
-        this.dir = dir;
-        this.name = name;
-        this.placeholder = placeholder;
+    constructor(dirType) {
+        this.dirType = dirType;
     }
 }
 function DirectiveWrapperDependency_tsickle_Closure_declarations() {
     /** @type {?} */
-    DirectiveWrapperDependency.prototype.dir;
-    /** @type {?} */
-    DirectiveWrapperDependency.prototype.name;
-    /** @type {?} */
-    DirectiveWrapperDependency.prototype.placeholder;
+    DirectiveWrapperDependency.prototype.dirType;
 }
 //# sourceMappingURL=deps.js.map

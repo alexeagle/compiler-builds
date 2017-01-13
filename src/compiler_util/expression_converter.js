@@ -6,7 +6,7 @@
  * found in the LICENSE file at https://angular.io/license
  */
 import * as cdAst from '../expression_parser/ast';
-import { isBlank, isPresent } from '../facade/lang';
+import { isBlank } from '../facade/lang';
 import { Identifiers, createIdentifier } from '../identifiers';
 import * as o from '../output/output_ast';
 import { createPureProxy } from './identifier_util';
@@ -439,7 +439,7 @@ class _AstToIrVisitor {
             const /** @type {?} */ receiver = this.visit(ast.receiver, _Mode.Expression);
             if (receiver === this._implicitReceiver) {
                 const /** @type {?} */ varExpr = this._getLocal(ast.name);
-                if (isPresent(varExpr)) {
+                if (varExpr) {
                     result = varExpr.callFn(args);
                 }
             }
@@ -488,7 +488,7 @@ class _AstToIrVisitor {
         const /** @type {?} */ receiver = this.visit(ast.receiver, _Mode.Expression);
         if (receiver === this._implicitReceiver) {
             const /** @type {?} */ varExpr = this._getLocal(ast.name);
-            if (isPresent(varExpr)) {
+            if (varExpr) {
                 throw new Error('Cannot assign to a reference or variable!');
             }
         }

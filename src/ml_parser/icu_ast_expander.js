@@ -26,9 +26,9 @@ const /** @type {?} */ PLURAL_CASES = ['zero', 'one', 'two', 'few', 'many', 'oth
  *
  * ```
  * <ng-container [ngPlural]="messages.length">
- *   <template ngPluralCase="=0">zero</ng-container>
- *   <template ngPluralCase="=1">one</ng-container>
- *   <template ngPluralCase="other">more than one</ng-container>
+ *   <template ngPluralCase="=0">zero</template>
+ *   <template ngPluralCase="=1">one</template>
+ *   <template ngPluralCase="other">more than one</template>
  * </ng-container>
  * ```
  * @param {?} nodes
@@ -70,6 +70,7 @@ export class ExpansionError extends ParseError {
 /**
  * Expand expansion forms (plural, select) to directives
  *
+ * \@internal
  */
 class _Expander {
     constructor() {

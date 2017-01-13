@@ -42,6 +42,7 @@ const /** @type {?} */ TAG_TO_PLACEHOLDER_NAMES = {
  *
  * Returns the same placeholder name when the content is identical.
  *
+ * \@internal
  */
 export class PlaceholderRegistry {
     constructor() {

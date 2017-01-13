@@ -7,7 +7,6 @@
  */
 import { SecurityContext } from '@angular/core/index';
 import { EmptyExpr, RecursiveAstVisitor } from '../expression_parser/ast';
-import { isPresent } from '../facade/lang';
 import { mergeNsAndName } from '../ml_parser/tags';
 import { ParseError, ParseErrorLevel, ParseSourceSpan } from '../parse_util';
 import { CssSelector } from '../selector';
@@ -139,7 +138,6 @@ export class BindingParser {
         }
     }
     /**
-     * @param {?} name
      * @param {?} prefixToken
      * @param {?} value
      * @param {?} sourceSpan
@@ -148,14 +146,14 @@ export class BindingParser {
      * @param {?} targetVars
      * @return {?}
      */
-    parseInlineTemplateBinding(name, prefixToken, value, sourceSpan, targetMatchableAttrs, targetProps, targetVars) {
+    parseInlineTemplateBinding(prefixToken, value, sourceSpan, targetMatchableAttrs, targetProps, targetVars) {
         const /** @type {?} */ bindings = this._parseTemplateBindings(prefixToken, value, sourceSpan);
         for (let /** @type {?} */ i = 0; i < bindings.length; i++) {
             const /** @type {?} */ binding = bindings[i];
             if (binding.keyIsVar) {
                 targetVars.push(new VariableAst(binding.key, binding.name, sourceSpan));
             }
-            else if (isPresent(binding.expression)) {
+            else if (binding.expression) {
                 this._parsePropertyAst(binding.key, binding.expression, sourceSpan, targetMatchableAttrs, targetProps);
             }
             else {
@@ -176,7 +174,7 @@ export class BindingParser {
             const /** @type {?} */ bindingsResult = this._exprParser.parseTemplateBindings(prefixToken, value, sourceInfo);
             this._reportExpressionParserErrors(bindingsResult.errors, sourceSpan);
             bindingsResult.templateBindings.forEach((binding) => {
-                if (isPresent(binding.expression)) {
+                if (binding.expression) {
                     this._checkPipes(binding.expression, sourceSpan);
                 }
             });
@@ -245,7 +243,7 @@ export class BindingParser {
      */
     parsePropertyInterpolation(name, value, sourceSpan, targetMatchableAttrs, targetProps) {
         const /** @type {?} */ expr = this.parseInterpolation(value, sourceSpan);
-        if (isPresent(expr)) {
+        if (expr) {
             this._parsePropertyAst(name, expr, sourceSpan, targetMatchableAttrs, targetProps);
             return true;
         }
@@ -460,7 +458,7 @@ export class BindingParser {
      * @return {?}
      */
     _checkPipes(ast, sourceSpan) {
-        if (isPresent(ast)) {
+        if (ast) {
             const /** @type {?} */ collector = new PipeCollector();
             ast.visit(collector);
             collector.pipes.forEach((ast, pipeName) => {

@@ -10,6 +10,7 @@ import { templateVisitAll } from '../template_parser/template_ast';
 import { bindOutputs } from './event_binder';
 import { bindDirectiveAfterContentLifecycleCallbacks, bindDirectiveAfterViewLifecycleCallbacks, bindDirectiveWrapperLifecycleCallbacks, bindInjectableDestroyLifecycleCallbacks, bindPipeDestroyLifecycleCallbacks } from './lifecycle_binder';
 import { bindDirectiveHostProps, bindDirectiveInputs, bindRenderInputs, bindRenderText } from './property_binder';
+import { bindQueryValues } from './query_binder';
 /**
  * @param {?} view
  * @param {?} parsedTemplate
@@ -63,6 +64,7 @@ class ViewBinderVisitor {
      */
     visitElement(ast, parent) {
         const /** @type {?} */ compileElement = (this.view.nodes[this._nodeIndex++]);
+        bindQueryValues(compileElement);
         const /** @type {?} */ hasEvents = bindOutputs(ast.outputs, ast.directives, compileElement, true);
         bindRenderInputs(ast.inputs, ast.outputs, hasEvents, compileElement);
         ast.directives.forEach((directiveAst, dirIndex) => {
@@ -93,6 +95,7 @@ class ViewBinderVisitor {
      */
     visitEmbeddedTemplate(ast, parent) {
         const /** @type {?} */ compileElement = (this.view.nodes[this._nodeIndex++]);
+        bindQueryValues(compileElement);
         bindOutputs(ast.outputs, ast.directives, compileElement, false);
         ast.directives.forEach((directiveAst, dirIndex) => {
             const /** @type {?} */ directiveInstance = compileElement.instances.get(directiveAst.directive.type.reference);

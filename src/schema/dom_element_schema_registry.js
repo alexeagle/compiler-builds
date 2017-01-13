@@ -5,7 +5,17 @@
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.io/license
  */
-import { CUSTOM_ELEMENTS_SCHEMA, Injectable, NO_ERRORS_SCHEMA, SecurityContext } from '@angular/core/index';
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+import { CUSTOM_ELEMENTS_SCHEMA, NO_ERRORS_SCHEMA, SecurityContext } from '@angular/core/index';
+import { CompilerInjectable } from '../injectable';
 import { dashCaseToCamelCase } from '../util';
 import { SECURITY_SCHEMA } from './dom_security_schema';
 import { ElementSchemaRegistry } from './element_schema_registry';
@@ -227,7 +237,7 @@ const /** @type {?} */ _ATTR_TO_PROP = {
     'readonly': 'readOnly',
     'tabindex': 'tabIndex',
 };
-export class DomElementSchemaRegistry extends ElementSchemaRegistry {
+export let DomElementSchemaRegistry = class DomElementSchemaRegistry extends ElementSchemaRegistry {
     constructor() {
         super();
         this._schema = {};
@@ -413,20 +423,12 @@ export class DomElementSchemaRegistry extends ElementSchemaRegistry {
         }
         return { error: errorMsg, value: strVal + unit };
     }
-}
-DomElementSchemaRegistry.decorators = [
-    { type: Injectable },
-];
-/** @nocollapse */
-DomElementSchemaRegistry.ctorParameters = () => [];
+};
+DomElementSchemaRegistry = __decorate([
+    CompilerInjectable(), 
+    __metadata('design:paramtypes', [])
+], DomElementSchemaRegistry);
 function DomElementSchemaRegistry_tsickle_Closure_declarations() {
-    /** @type {?} */
-    DomElementSchemaRegistry.decorators;
-    /**
-     * @nocollapse
-     * @type {?}
-     */
-    DomElementSchemaRegistry.ctorParameters;
     /** @type {?} */
     DomElementSchemaRegistry.prototype._schema;
 }

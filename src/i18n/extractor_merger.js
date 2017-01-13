@@ -65,6 +65,7 @@ _VisitorMode[_VisitorMode.Merge] = "Merge";
  * 1. to extract all the translatable strings from an html AST (see `extract()`),
  * 2. to replace the translatable strings with the actual translations (see `merge()`)
  *
+ * \@internal
  */
 class _Visitor {
     /**
@@ -206,47 +207,30 @@ class _Visitor {
         this._depth++;
         const /** @type {?} */ wasInI18nNode = this._inI18nNode;
         const /** @type {?} */ wasInImplicitNode = this._inImplicitNode;
-        let /** @type {?} */ childNodes;
-        // Extract only top level nodes with the (implicit) "i18n" attribute if not in a block or an ICU
-        // message
+        let /** @type {?} */ childNodes = [];
+        let /** @type {?} */ translatedChildNodes;
+        // Extract:
+        // - top level nodes with the (implicit) "i18n" attribute if not already in a section
+        // - ICU messages
         const /** @type {?} */ i18nAttr = _getI18nAttr(el);
+        const /** @type {?} */ i18nMeta = i18nAttr ? i18nAttr.value : '';
         const /** @type {?} */ isImplicit = this._implicitTags.some(tag => el.name === tag) && !this._inIcu &&
             !this._isInTranslatableSection;
         const /** @type {?} */ isTopLevelImplicit = !wasInImplicitNode && isImplicit;
-        this._inImplicitNode = this._inImplicitNode || isImplicit;
+        this._inImplicitNode = wasInImplicitNode || isImplicit;
         if (!this._isInTranslatableSection && !this._inIcu) {
-            if (i18nAttr) {
-                // explicit translation
+            if (i18nAttr || isTopLevelImplicit) {
                 this._inI18nNode = true;
-                const /** @type {?} */ message = this._addMessage(el.children, i18nAttr.value);
-                childNodes = this._translateMessage(el, message);
-            }
-            else if (isTopLevelImplicit) {
-                // implicit translation
-                this._inI18nNode = true;
-                const /** @type {?} */ message = this._addMessage(el.children);
-                childNodes = this._translateMessage(el, message);
+                const /** @type {?} */ message = this._addMessage(el.children, i18nMeta);
+                translatedChildNodes = this._translateMessage(el, message);
             }
             if (this._mode == _VisitorMode.Extract) {
                 const /** @type {?} */ isTranslatable = i18nAttr || isTopLevelImplicit;
-                if (isTranslatable) {
+                if (isTranslatable)
                     this._openTranslatableSection(el);
-                }
                 html.visitAll(this, el.children);
-                if (isTranslatable) {
+                if (isTranslatable)
                     this._closeTranslatableSection(el, el.children);
-                }
-            }
-            if (this._mode === _VisitorMode.Merge && !i18nAttr && !isTopLevelImplicit) {
-                childNodes = [];
-                el.children.forEach(child => {
-                    const /** @type {?} */ visited = child.visit(this, context);
-                    if (visited && !this._isInTranslatableSection) {
-                        // Do not add the children from translatable sections (= i18n blocks here)
-                        // They will be added when the section is close (i.e. on `<!-- /i18n -->`)
-                        childNodes = childNodes.concat(visited);
-                    }
-                });
             }
         }
         else {
@@ -257,25 +241,23 @@ class _Visitor {
                 // Descend into child nodes for extraction
                 html.visitAll(this, el.children);
             }
-            if (this._mode == _VisitorMode.Merge) {
-                // Translate attributes in ICU messages
-                childNodes = [];
-                el.children.forEach(child => {
-                    const /** @type {?} */ visited = child.visit(this, context);
-                    if (visited && !this._isInTranslatableSection) {
-                        // Do not add the children from translatable sections (= i18n blocks here)
-                        // They will be added when the section is close (i.e. on `<!-- /i18n -->`)
-                        childNodes = childNodes.concat(visited);
-                    }
-                });
-            }
+        }
+        if (this._mode === _VisitorMode.Merge) {
+            const /** @type {?} */ visitNodes = translatedChildNodes || el.children;
+            visitNodes.forEach(child => {
+                const /** @type {?} */ visited = child.visit(this, context);
+                if (visited && !this._isInTranslatableSection) {
+                    // Do not add the children from translatable sections (= i18n blocks here)
+                    // They will be added later in this loop when the block closes (i.e. on `<!-- /i18n -->`)
+                    childNodes = childNodes.concat(visited);
+                }
+            });
         }
         this._visitAttributesOf(el);
         this._depth--;
         this._inI18nNode = wasInI18nNode;
         this._inImplicitNode = wasInImplicitNode;
         if (this._mode === _VisitorMode.Merge) {
-            // There are no childNodes in translatable sections - those nodes will be replace anyway
             const /** @type {?} */ translatedAttrs = this._translateAttributes(el);
             return new html.Element(el.name, translatedAttrs, childNodes, el.sourceSpan, el.startSourceSpan, el.endSourceSpan);
         }
@@ -411,7 +393,7 @@ class _Visitor {
         }
     }
     /**
-     * Marks the start of a section, see `_endSection`
+     * Marks the start of a section, see `_closeTranslatableSection`
      * @param {?} node
      * @return {?}
      */
@@ -425,7 +407,7 @@ class _Visitor {
     }
     /**
      * A translatable section could be:
-     * - a translatable element,
+     * - the content of translatable element,
      * - nodes between `<!-- i18n -->` and `<!-- /i18n -->` comments
      * @return {?}
      */
@@ -480,19 +462,19 @@ class _Visitor {
 }
 function _Visitor_tsickle_Closure_declarations() {
     /** @type {?} */
-    _Visitor.prototype._inI18nNode;
-    /** @type {?} */
     _Visitor.prototype._depth;
     /** @type {?} */
+    _Visitor.prototype._inI18nNode;
+    /** @type {?} */
     _Visitor.prototype._inImplicitNode;
+    /** @type {?} */
+    _Visitor.prototype._inI18nBlock;
     /** @type {?} */
     _Visitor.prototype._blockMeaningAndDesc;
     /** @type {?} */
     _Visitor.prototype._blockChildren;
     /** @type {?} */
     _Visitor.prototype._blockStartDepth;
-    /** @type {?} */
-    _Visitor.prototype._inI18nBlock;
     /** @type {?} */
     _Visitor.prototype._inIcu;
     /** @type {?} */

@@ -144,13 +144,13 @@ function MapType_tsickle_Closure_declarations() {
     /** @type {?} */
     MapType.prototype.valueType;
 }
-export var /** @type {?} */ DYNAMIC_TYPE = new BuiltinType(BuiltinTypeName.Dynamic);
-export var /** @type {?} */ BOOL_TYPE = new BuiltinType(BuiltinTypeName.Bool);
-export var /** @type {?} */ INT_TYPE = new BuiltinType(BuiltinTypeName.Int);
-export var /** @type {?} */ NUMBER_TYPE = new BuiltinType(BuiltinTypeName.Number);
-export var /** @type {?} */ STRING_TYPE = new BuiltinType(BuiltinTypeName.String);
-export var /** @type {?} */ FUNCTION_TYPE = new BuiltinType(BuiltinTypeName.Function);
-export var /** @type {?} */ NULL_TYPE = new BuiltinType(BuiltinTypeName.Null);
+export const /** @type {?} */ DYNAMIC_TYPE = new BuiltinType(BuiltinTypeName.Dynamic);
+export const /** @type {?} */ BOOL_TYPE = new BuiltinType(BuiltinTypeName.Bool);
+export const /** @type {?} */ INT_TYPE = new BuiltinType(BuiltinTypeName.Int);
+export const /** @type {?} */ NUMBER_TYPE = new BuiltinType(BuiltinTypeName.Number);
+export const /** @type {?} */ STRING_TYPE = new BuiltinType(BuiltinTypeName.String);
+export const /** @type {?} */ FUNCTION_TYPE = new BuiltinType(BuiltinTypeName.Function);
+export const /** @type {?} */ NULL_TYPE = new BuiltinType(BuiltinTypeName.Null);
 export let BinaryOperator = {};
 BinaryOperator.Equals = 0;
 BinaryOperator.NotEquals = 1;
@@ -942,12 +942,12 @@ function LiteralMapExpr_tsickle_Closure_declarations() {
     /** @type {?} */
     LiteralMapExpr.prototype.entries;
 }
-export var /** @type {?} */ THIS_EXPR = new ReadVarExpr(BuiltinVar.This);
-export var /** @type {?} */ SUPER_EXPR = new ReadVarExpr(BuiltinVar.Super);
-export var /** @type {?} */ CATCH_ERROR_VAR = new ReadVarExpr(BuiltinVar.CatchError);
-export var /** @type {?} */ CATCH_STACK_VAR = new ReadVarExpr(BuiltinVar.CatchStack);
-export var /** @type {?} */ NULL_EXPR = new LiteralExpr(null, null);
-export var /** @type {?} */ TYPED_NULL_EXPR = new LiteralExpr(null, NULL_TYPE);
+export const /** @type {?} */ THIS_EXPR = new ReadVarExpr(BuiltinVar.This);
+export const /** @type {?} */ SUPER_EXPR = new ReadVarExpr(BuiltinVar.Super);
+export const /** @type {?} */ CATCH_ERROR_VAR = new ReadVarExpr(BuiltinVar.CatchError);
+export const /** @type {?} */ CATCH_STACK_VAR = new ReadVarExpr(BuiltinVar.CatchStack);
+export const /** @type {?} */ NULL_EXPR = new LiteralExpr(null, null);
+export const /** @type {?} */ TYPED_NULL_EXPR = new LiteralExpr(null, NULL_TYPE);
 export let StmtModifier = {};
 StmtModifier.Final = 0;
 StmtModifier.Private = 1;
@@ -1906,10 +1906,11 @@ export function literalArr(values, type = null) {
 /**
  * @param {?} values
  * @param {?=} type
+ * @param {?=} quoted
  * @return {?}
  */
-export function literalMap(values, type = null) {
-    return new LiteralMapExpr(values.map(entry => new LiteralMapEntry(entry[0], entry[1])), type);
+export function literalMap(values, type = null, quoted = false) {
+    return new LiteralMapExpr(values.map(entry => new LiteralMapEntry(entry[0], entry[1], quoted)), type);
 }
 /**
  * @param {?} expr

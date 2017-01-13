@@ -5,10 +5,20 @@
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.io/license
  */
-import { Injectable, ViewEncapsulation } from '@angular/core/index';
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+import { ViewEncapsulation } from '@angular/core/index';
 import { CompileStylesheetMetadata, CompileTemplateMetadata } from './compile_metadata';
 import { CompilerConfig } from './config';
-import { isBlank, isPresent, stringify } from './facade/lang';
+import { stringify } from './facade/lang';
+import { CompilerInjectable } from './injectable';
 import * as html from './ml_parser/ast';
 import { HtmlParser } from './ml_parser/html_parser';
 import { InterpolationConfig } from './ml_parser/interpolation_config';
@@ -16,8 +26,8 @@ import { ResourceLoader } from './resource_loader';
 import { extractStyleUrls, isStyleUrlResolvable } from './style_url_resolver';
 import { PreparsedElementType, preparseElement } from './template_parser/template_preparser';
 import { UrlResolver } from './url_resolver';
-import { SyncAsyncResult } from './util';
-export class DirectiveNormalizer {
+import { SyncAsyncResult, SyntaxError } from './util';
+export let DirectiveNormalizer = class DirectiveNormalizer {
     /**
      * @param {?} _resourceLoader
      * @param {?} _urlResolver
@@ -65,15 +75,21 @@ export class DirectiveNormalizer {
     normalizeTemplate(prenormData) {
         let /** @type {?} */ normalizedTemplateSync = null;
         let /** @type {?} */ normalizedTemplateAsync;
-        if (isPresent(prenormData.template)) {
+        if (prenormData.template != null) {
+            if (typeof prenormData.template !== 'string') {
+                throw new SyntaxError(`The template specified for component ${stringify(prenormData.componentType)} is not a string`);
+            }
             normalizedTemplateSync = this.normalizeTemplateSync(prenormData);
             normalizedTemplateAsync = Promise.resolve(normalizedTemplateSync);
         }
         else if (prenormData.templateUrl) {
+            if (typeof prenormData.templateUrl !== 'string') {
+                throw new SyntaxError(`The templateUrl specified for component ${stringify(prenormData.componentType)} is not a string`);
+            }
             normalizedTemplateAsync = this.normalizeTemplateAsync(prenormData);
         }
         else {
-            throw new Error(`No template specified for component ${stringify(prenormData.componentType)}`);
+            throw new SyntaxError(`No template specified for component ${stringify(prenormData.componentType)}`);
         }
         if (normalizedTemplateSync && normalizedTemplateSync.styleUrls.length === 0) {
             // sync case
@@ -108,10 +124,10 @@ export class DirectiveNormalizer {
      */
     normalizeLoadedTemplate(prenomData, template, templateAbsUrl) {
         const /** @type {?} */ interpolationConfig = InterpolationConfig.fromArray(prenomData.interpolation);
-        const /** @type {?} */ rootNodesAndErrors = this._htmlParser.parse(template, stringify(prenomData.componentType), false, interpolationConfig);
+        const /** @type {?} */ rootNodesAndErrors = this._htmlParser.parse(template, stringify(prenomData.componentType), true, interpolationConfig);
         if (rootNodesAndErrors.errors.length > 0) {
             const /** @type {?} */ errorString = rootNodesAndErrors.errors.join('\n');
-            throw new Error(`Template parse errors:\n${errorString}`);
+            throw new SyntaxError(`Template parse errors:\n${errorString}`);
         }
         const /** @type {?} */ templateMetadataStyles = this.normalizeStylesheet(new CompileStylesheetMetadata({
             styles: prenomData.styles,
@@ -122,7 +138,7 @@ export class DirectiveNormalizer {
         html.visitAll(visitor, rootNodesAndErrors.rootNodes);
         const /** @type {?} */ templateStyles = this.normalizeStylesheet(new CompileStylesheetMetadata({ styles: visitor.styles, styleUrls: visitor.styleUrls, moduleUrl: templateAbsUrl }));
         let /** @type {?} */ encapsulation = prenomData.encapsulation;
-        if (isBlank(encapsulation)) {
+        if (encapsulation == null) {
             encapsulation = this._config.defaultEncapsulation;
         }
         const /** @type {?} */ styles = templateMetadataStyles.styles.concat(templateStyles.styles);
@@ -187,25 +203,12 @@ export class DirectiveNormalizer {
         });
         return new CompileStylesheetMetadata({ styles: allStyles, styleUrls: allStyleUrls, moduleUrl: stylesheet.moduleUrl });
     }
-}
-DirectiveNormalizer.decorators = [
-    { type: Injectable },
-];
-/** @nocollapse */
-DirectiveNormalizer.ctorParameters = () => [
-    { type: ResourceLoader, },
-    { type: UrlResolver, },
-    { type: HtmlParser, },
-    { type: CompilerConfig, },
-];
+};
+DirectiveNormalizer = __decorate([
+    CompilerInjectable(), 
+    __metadata('design:paramtypes', [ResourceLoader, UrlResolver, HtmlParser, CompilerConfig])
+], DirectiveNormalizer);
 function DirectiveNormalizer_tsickle_Closure_declarations() {
-    /** @type {?} */
-    DirectiveNormalizer.decorators;
-    /**
-     * @nocollapse
-     * @type {?}
-     */
-    DirectiveNormalizer.ctorParameters;
     /** @type {?} */
     DirectiveNormalizer.prototype._resourceLoaderCache;
     /** @type {?} */
@@ -266,6 +269,20 @@ class TemplatePreparseVisitor {
      * @param {?} context
      * @return {?}
      */
+    visitExpansion(ast, context) { html.visitAll(this, ast.cases); }
+    /**
+     * @param {?} ast
+     * @param {?} context
+     * @return {?}
+     */
+    visitExpansionCase(ast, context) {
+        html.visitAll(this, ast.expression);
+    }
+    /**
+     * @param {?} ast
+     * @param {?} context
+     * @return {?}
+     */
     visitComment(ast, context) { return null; }
     /**
      * @param {?} ast
@@ -279,18 +296,6 @@ class TemplatePreparseVisitor {
      * @return {?}
      */
     visitText(ast, context) { return null; }
-    /**
-     * @param {?} ast
-     * @param {?} context
-     * @return {?}
-     */
-    visitExpansion(ast, context) { return null; }
-    /**
-     * @param {?} ast
-     * @param {?} context
-     * @return {?}
-     */
-    visitExpansionCase(ast, context) { return null; }
 }
 function TemplatePreparseVisitor_tsickle_Closure_declarations() {
     /** @type {?} */

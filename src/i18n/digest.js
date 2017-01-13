@@ -26,6 +26,7 @@ export function decimalDigest(message) {
  *
  * The visitor is also used in the i18n parser tests
  *
+ * \@internal
  */
 class _SerializerVisitor {
     /**
@@ -91,6 +92,7 @@ export function serializeNodes(nodes) {
  *
  * Ignore the ICU expressions so that message IDs stays identical if only the expression changes.
  *
+ * \@internal
  */
 class _SerializerIgnoreIcuExpVisitor extends _SerializerVisitor {
     /**

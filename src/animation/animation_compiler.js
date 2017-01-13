@@ -9,7 +9,7 @@ import { isPresent } from '../facade/lang';
 import { Identifiers, createIdentifier } from '../identifiers';
 import * as o from '../output/output_ast';
 import { ANY_STATE, DEFAULT_STATE, EMPTY_STATE } from '../private_import_core';
-import { AnimationStepAst } from './animation_ast';
+import { AnimationStateTransitionFnExpression, AnimationStepAst } from './animation_ast';
 export class AnimationEntryCompileResult {
     /**
      * @param {?} name
@@ -83,7 +83,7 @@ class _AnimationBuilder {
         }
         ast.styles.forEach(entry => {
             const /** @type {?} */ entries = Object.keys(entry).map((key) => [key, o.literal(entry[key])]);
-            stylesArr.push(o.literalMap(entries));
+            stylesArr.push(o.literalMap(entries, null, true));
         });
         return o.importExpr(createIdentifier(Identifiers.AnimationStyles)).instantiate([
             o.importExpr(createIdentifier(Identifiers.collectAndResolveStyles)).callFn([
@@ -115,6 +115,7 @@ class _AnimationBuilder {
         return this._callAnimateMethod(ast, startingStylesExpr, o.literalArr(keyframeExpressions), context);
     }
     /**
+     * \@internal
      * @param {?} ast
      * @param {?} context
      * @return {?}
@@ -129,6 +130,7 @@ class _AnimationBuilder {
         return this._callAnimateMethod(ast, startingStylesExpr, keyframesExpr, context);
     }
     /**
+     * \@internal
      * @param {?} ast
      * @param {?} startingStylesExpr
      * @param {?} keyframesExpr
@@ -195,13 +197,20 @@ class _AnimationBuilder {
         context.isExpectingFirstAnimateStep = true;
         const /** @type {?} */ stateChangePreconditions = [];
         ast.stateChanges.forEach(stateChange => {
-            stateChangePreconditions.push(_compareToAnimationStateExpr(_ANIMATION_CURRENT_STATE_VAR, stateChange.fromState)
-                .and(_compareToAnimationStateExpr(_ANIMATION_NEXT_STATE_VAR, stateChange.toState)));
-            if (stateChange.fromState != ANY_STATE) {
-                context.stateMap.registerState(stateChange.fromState);
+            if (stateChange instanceof AnimationStateTransitionFnExpression) {
+                stateChangePreconditions.push(o.importExpr({ reference: stateChange.fn }).callFn([
+                    _ANIMATION_CURRENT_STATE_VAR, _ANIMATION_NEXT_STATE_VAR
+                ]));
             }
-            if (stateChange.toState != ANY_STATE) {
-                context.stateMap.registerState(stateChange.toState);
+            else {
+                stateChangePreconditions.push(_compareToAnimationStateExpr(_ANIMATION_CURRENT_STATE_VAR, stateChange.fromState)
+                    .and(_compareToAnimationStateExpr(_ANIMATION_NEXT_STATE_VAR, stateChange.toState)));
+                if (stateChange.fromState != ANY_STATE) {
+                    context.stateMap.registerState(stateChange.fromState);
+                }
+                if (stateChange.toState != ANY_STATE) {
+                    context.stateMap.registerState(stateChange.toState);
+                }
             }
         });
         const /** @type {?} */ animationPlayerExpr = ast.animation.visit(this, context);
@@ -287,8 +296,8 @@ class _AnimationBuilder {
         ])
             .toStmt());
         statements.push(new o.ReturnStatement(o.importExpr(createIdentifier(Identifiers.AnimationTransition)).instantiate([
-            _ANIMATION_PLAYER_VAR, _ANIMATION_CURRENT_STATE_VAR, _ANIMATION_NEXT_STATE_VAR,
-            _ANIMATION_TIME_VAR
+            _ANIMATION_PLAYER_VAR, _ANIMATION_FACTORY_ELEMENT_VAR, o.literal(this.animationName),
+            _ANIMATION_CURRENT_STATE_VAR, _ANIMATION_NEXT_STATE_VAR, _ANIMATION_TIME_VAR
         ])));
         return o.fn([
             new o.FnParam(_ANIMATION_FACTORY_VIEW_VAR.name, o.importType(createIdentifier(Identifiers.AppView), [o.DYNAMIC_TYPE])),
@@ -312,11 +321,11 @@ class _AnimationBuilder {
             if (isPresent(value)) {
                 const /** @type {?} */ styleMap = [];
                 Object.keys(value).forEach(key => { styleMap.push([key, o.literal(value[key])]); });
-                variableValue = o.literalMap(styleMap);
+                variableValue = o.literalMap(styleMap, null, true);
             }
             lookupMap.push([stateName, variableValue]);
         });
-        const /** @type {?} */ compiledStatesMapStmt = this._statesMapVar.set(o.literalMap(lookupMap)).toDeclStmt();
+        const /** @type {?} */ compiledStatesMapStmt = this._statesMapVar.set(o.literalMap(lookupMap, null, true)).toDeclStmt();
         const /** @type {?} */ statements = [compiledStatesMapStmt, fnStatement];
         return new AnimationEntryCompileResult(this.animationName, statements, fnVariable);
     }
